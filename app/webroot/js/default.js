@@ -823,6 +823,7 @@ function initActions(){
 		$(".root_menu_for_header, .main_menu_for_header").css("right", r_pos);
 		
 		//cells
+		/*
 		$("div.floatingCell").css("left", scrollLeft);
 		$(".floatingBckGrnd").css("left", scrollLeft + contentMargin);
 		if(scrollLeft > contentMargin){
@@ -831,6 +832,8 @@ function initActions(){
 			$(".floatingBckGrnd .left").css("opacity", 0);
 		}
 		$(".floatingBckGrnd .right div").css("opacity", Math.min(15, scrollLeft) * 0.03);
+		*/
+		$(".testScroll").css("left", scrollLeft);
 	}
 	
 	function initAutoHideVolume(){
@@ -1148,6 +1151,20 @@ function initActions(){
 	}
 	
 	function initFlyOverCells(scope){
+		$(scope).find("table").find("th.floatingCell:last").each(function(){
+			var i = 1;
+			$(this).addClass("testScroll");
+			$(this).prevAll().each(function(){
+				++ i;
+				$(this).addClass("testScroll");
+			});
+			for(var j = 1; j <= i; ++ j){
+				$(this).parents("table").eq(0).find("td:nth-child(" + j + ")").addClass("testScroll");
+			}
+		});
+		$(".testScroll").css("position", "relative");
+	}
+	function crap(){
 		$("body").append('<div class="hidden" id="initFlyOverCells"></div>');
 		var tmpDiv = $("#initFlyOverCells");
 		$(scope).find("table").find("th.floatingCell:last").each(function(){
@@ -1165,6 +1182,8 @@ function initActions(){
 	}
 	
 	function initFlyOverCellsLines(scope){
+	}
+	function crap2(){
 		var table = null;
 		if(scope[0].nodeName == "TABLE"){
 			table = scope;
