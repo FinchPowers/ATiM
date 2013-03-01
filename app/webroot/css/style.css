@@ -1976,9 +1976,6 @@ table.columns.index tbody tr:nth-child(even), div.indexLangHeader{
 	background-color: #f3f3f3;
 }
 
-table.structure.lineHighlight table.columns.index tbody tr:hover, table.structure.lineHighlight table.columns.index tbody tr:hover div.floatingCell{
-	background-color: #ffc;
-}
 .row{
 	display: table-row;
 }
@@ -2059,6 +2056,7 @@ tr.chkLine, table.columns.index tbody tr.chkLine:nth-child(even){
 }
 
 .floatingBckGrnd{
+	border: black solid 1px;
 	background-color: white;
 	position: absolute;
 	z-index: 1;
@@ -2084,7 +2082,6 @@ tr.chkLine, table.columns.index tbody tr.chkLine:nth-child(even){
 }
 	
 div.floatingCell{
-	position: relative;
 	z-index: 2;
 }
 

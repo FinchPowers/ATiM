@@ -1162,25 +1162,38 @@ function initActions(){
 				$(this).parents("table").eq(0).find("td:nth-child(" + j + ")").addClass("testScroll");
 			}
 		});
+		firstTh = $(scope).find("table").find("th.floatingCell:first").prev()
+		firstTh.append('<div class="floatingBckGrnd"></div>');
+		lastTh = $(scope).find("table").find("th.floatingCell:last");
+		lastTd = $(scope).find("table").find("tr:last td.testScroll:last");
+		computeSum = function(obj, cssArr){
+			total = 0;
+			for(var i in cssArr){
+				total += parseFloat(obj.css(cssArr[i]));
+			}
+			return total;
+		}
+		psSize = function(obj, direction){
+			arr = ["margin-%s", "padding-%s", "border-%s-width"]
+			newArr = []
+			for(var i in arr){
+				newArr.push(arr[i].replace("%s", direction));
+			}
+			return computeSum(obj, newArr);
+		};
+		console.log(psSize(lastTh, "right"));
+		width = lastTh.width() + lastTh.position().left + psSize(lastTh, "right") - firstTh.position().left + psSize(firstTh, "left");
+		height = lastTd.height() + lastTd.position().top + psSize(lastTd, "bottom")- firstTh.position().top + psSize(firstTh, "top");
+		$(".floatingBckGrnd").css({
+			"top" : 0,
+			"left" : 0,
+			"width" : width + "px", 
+			"height" : height + "px"
+		});
+		//resizeFloatingBckGrnd(firstTh.find(".floatingBckGrnd"))
+		
 		$(".testScroll").css("position", "relative");
 	}
-	function crap(){
-		$("body").append('<div class="hidden" id="initFlyOverCells"></div>');
-		var tmpDiv = $("#initFlyOverCells");
-		$(scope).find("table").find("th.floatingCell:last").each(function(){
-			//floaintCells are headers. Make their column float for thead and tbody
-			$(this).children().appendTo(tmpDiv);
-			$(this).html('<div class="floatingBckGrnd"><div class="right"><div></div></div><div class="left"></div></div><div class="floatingCell">' + $(this).html() + '</div>');
-			var lastDiv = $(this).find("div:last");
-			$(tmpDiv).children().appendTo(lastDiv);
-			$(this).prevAll().each(function(){
-				$(this).html('<div class="floatingCell">' + $(this).html() + '</div>');
-			});
-			initFlyOverCellsLines($(this).parents("table:first"));
-		});
-		$("#tmpDiv").remove();
-	}
-	
 	function initFlyOverCellsLines(scope){
 	}
 	function crap2(){
