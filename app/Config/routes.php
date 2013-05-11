@@ -26,20 +26,17 @@
  * its action called 'display', and we pass a param to select the view file
  * to use (in this case, /app/View/Pages/home.ctp)...
  */
-	Router::connect('/', array('controller' => 'pages', 'action' => 'display', 'home'));
-/**
- * ...and connect the rest of 'Pages' controller's urls.
- */
-	Router::connect('/pages/*', array('controller' => 'pages', 'action' => 'display'));
+	Router::connect('/Menus', array('controller' => 'Menus', 'action' => 'index'));
+	Router::connect('/Menus/update', array('controller' => 'Menus', 'action' => 'update'));
+	Router::connect('/Menus/tools', array('controller' => 'Menus', 'action' => 'index', 'tools'));
+	Router::connect('/Menus/datamart', array('controller' => 'Menus', 'action' => 'index', 'datamart'));
+	
+	Router::connect('/Pages/*', array('controller' => 'Pages', 'action' => 'display'));
+	Router::connect('/', array('controller' => 'Users', 'action' => 'login'));
 
-/**
- * Load all plugin routes. See the CakePlugin documentation on
- * how to customize the loading of plugin routes.
- */
-	CakePlugin::routes();
-
-/**
- * Load the CakePHP default routes. Only remove this if you do not want to use
- * the built-in default routes.
- */
-	require CAKE . 'Config' . DS . 'routes.php';
+	foreach(CakePlugin::loaded() as $plugin){
+		Router::connect('/'.$plugin.'/:controller', array('plugin' => $plugin, 'action' => 'index'));
+		Router::connect('/'.$plugin.'/:controller/:action/*', array('plugin' => $plugin));
+	}
+	
+	Router::connect('/:controller/:action/*');

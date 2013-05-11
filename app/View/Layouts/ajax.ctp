@@ -16,5 +16,6 @@
  * @since         CakePHP(tm) v 0.10.0.1076
  * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-?>
-<?php echo $this->fetch('content'); ?>
+AppController::atimSetCookie(isset($skip_expiration_cookie) && $skip_expiration_cookie);
+echo $this->Shell->validationHtml();
+echo $content_for_layout;

@@ -17,22 +17,33 @@
  * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
 ?>
-<!DOCTYPE html>
-<html>
+<!DOCTYPE HTML>
 <head>
-<?php echo $this->Html->charset(); ?>
-<title><?php echo $page_title; ?></title>
+	
+	<title><?php echo $page_title.' &laquo; '.__('core_appname', true); ?></title>
+	<link rel="shortcut icon" href="<?php echo($this->webroot); ?>img/favicon.ico"/>
 
-<?php if (Configure::read('debug') == 0) { ?>
-<meta http-equiv="Refresh" content="<?php echo $pause; ?>;url=<?php echo $url; ?>"/>
-<?php } ?>
-<style><!--
-P { text-align:center; font:bold 1.1em sans-serif }
-A { color:#444; text-decoration:none }
-A:HOVER { text-decoration: underline; color:#44E }
---></style>
+	<?php 
+		echo $this->Html->css('style');
+		echo $this->Html->charset('UTF-8');
+	 ?>
+
+	
 </head>
-<body>
-<p><a href="<?php echo $url; ?>"><?php echo $message; ?></a></p>
+
+<body class="flash">
+
+    <div class="wrapper">
+		<a href="<?php echo $url; ?>"> 
+        	<?php echo __( $message, true ); ?>
+        	<br/>
+	        <small><?php __('click to continue'); ?></small>
+		</a>
+    </div>
+    <?php
+    	echo $this->element('sql_dump');
+    ?>
+    
 </body>
+
 </html>
