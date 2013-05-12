@@ -353,6 +353,6 @@ Cache::config('browser', array('engine' => 'File', 'path' => CACHE . "browser", 
 Cache::config('default', array('engine' => 'File'));
 
 Configure::write('use_compression', true);
-
+Configure::write('Session.timeout', $debug ? 3600 : 600);
 
 unset($debug);
