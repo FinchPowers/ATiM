@@ -39,11 +39,9 @@ class PagesController extends AppController {
 	public $name = 'Pages';
 
 /**
- * This controller does not use a model
- *
  * @var array
  */
-	public $uses = array();
+	public $uses = array('Page');
 	
 	function beforeFilter() {
 		parent::beforeFilter();
@@ -58,57 +56,36 @@ class PagesController extends AppController {
  */
 	public function display() {
 		$path = func_get_args();
-
-		$count = count($path);
-		if (!$count) {
-			$this->redirect('/');
+		$this->log($this->request->query, 'debug');
+		$results = $this->Page->getOrRedirect($path);
+		if(isset($this->request->query['err_msg'])){
+			//this message will be displayed in red
+			$results['err_trace'] = urldecode($this->request->query['err_msg']);
 		}
-		$page = $subpage = $title_for_layout = null;
-
-		if (!empty($path[0])) {
-			$page = $path[0];
+		$results['Page']['language_body'] = __($results['Page']['language_body']);
+		if(isset($this->request->query['p'])){
+			//these will be replaced in the body string
+			$p = $this->request->query['p'];
+			if(count($p) == 1){
+				$results['Page']['language_body'] = sprintf($results['Page']['language_body'], $p[0]);
+			}else if(count($p) == 2){
+				$results['Page']['language_body'] = sprintf($results['Page']['language_body'], $p[0], $p[1]);
+			}else if(count($p) == 3){
+				$results['Page']['language_body'] = sprintf($results['Page']['language_body'], $p[0], $p[1], $p[2]);
+			}else if(count($p) > 3){
+				$results['Page']['language_body'] = sprintf($results['Page']['language_body'], $p[0], $p[1], $p[2], $p[3]);
+			}
+			//if it's more than 4 we'll get a warning
 		}
-		if (!empty($path[1])) {
-			$subpage = $path[1];
+		$this->set('data',$results);
+		
+		if ( isset($results) && isset($results['Page']) && isset($results['Page']['use_link']) && $results['Page']['use_link'] ) {
+			$use_link = $results['Page']['use_link'];
+		} else {
+			$use_link = '/menus';
 		}
-		if (!empty($path[$count - 1])) {
-			$title_for_layout = Inflector::humanize($path[$count - 1]);
-		}
-		$this->set(compact('page', 'subpage', 'title_for_layout'));
-		$this->render(implode('/', $path));
+		
+		$this->set( 'atim_menu', $this->Menus->get($use_link) );
+		
 	}
 }
-
-/*
-function display( $page_id = NULL) {
-	$results = $this->Page->getOrRedirect($page_id);
-
-	if(isset($_GET['err_msg'])){
-		//this message will be displayed in red
-		$results['err_trace'] = urldecode($_GET['err_msg']);
-	}
-	$results['Page']['language_body'] = __($results['Page']['language_body']);
-	if(isset($_GET['p'])){
-		//these will be replaced in the body string
-		$p = $_GET['p'];
-		if(count($p) == 1){
-			$results['Page']['language_body'] = sprintf($results['Page']['language_body'], $p[0]);
-		}else if(count($p) == 2){
-			$results['Page']['language_body'] = sprintf($results['Page']['language_body'], $p[0], $p[1]);
-		}else if(count($p) == 3){
-			$results['Page']['language_body'] = sprintf($results['Page']['language_body'], $p[0], $p[1], $p[2]);
-		}else if(count($p) > 3){
-			$results['Page']['language_body'] = sprintf($results['Page']['language_body'], $p[0], $p[1], $p[2], $p[3]);
-		}
-		//if it's more than 4 we'll get a warning
-	}
-	$this->set('data',$results);
-
-	if ( isset($results) && isset($results['Page']) && isset($results['Page']['use_link']) && $results['Page']['use_link'] ) {
-		$use_link = $results['Page']['use_link'];
-	} else {
-		$use_link = '/menus';
-	}
-
-	$this->set( 'atim_menu', $this->Menus->get($use_link) );
-*/
