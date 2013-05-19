@@ -146,7 +146,8 @@ class ClassRegistry {
 					//ATIM start----------
 					$class_custom = $class.'Custom';
 					$reflection = null;
-					if (class_exists($class_custom) || interface_exists($class_custom)) {
+					if (class_exists($class_custom) || interface_exists($class_custom)){
+						$class = $class_custom;
 						$reflection = new ReflectionClass($class_custom);
 					}else{
 						$reflection = new ReflectionClass($class);
