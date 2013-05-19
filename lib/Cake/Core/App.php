@@ -562,7 +562,7 @@ class App {
 				$file = $path . DS . $className . '.php';
 				$file_custom = $path . 'Custom' . DS . $normalizedClassName . '.php';
 				if (file_exists($file_custom) && file_exists($file)) {
-					self::_map($file, $className);
+					self::_map($file_custom, $className);
 					include $file;
 					return include $file_custom;
 				}
