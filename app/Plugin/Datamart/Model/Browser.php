@@ -213,6 +213,12 @@ class Browser extends DatamartAppModel {
 			return $this->buildBrowsableOptionsRecur($from_to, $current_id, $browsing_structures, $sub_models_id_filter, array());
 		}
 		
+		if(in_array($current_id, $from_to[$current_id])){
+			//make sure the reentrant option is the very first to pass by
+			//the count($stack) > 1 condition
+			array_unshift($from_to[$current_id], $current_id);
+		}
+		
 		$result = null;
 		if(isset($from_to[$current_id]) && isset($browsing_structures[$current_id])){
 			$to_arr = $from_to[$current_id];
@@ -231,8 +237,9 @@ class Browser extends DatamartAppModel {
 					$to_val = $to['val'];
 					$to_path = $to['path'];
 					$to_path[] = $to_val;
-					if(array_key_exists($to_val, $stack)){
-						//already treated that
+					if(array_key_exists($to_val, $stack) && count($stack) > 1){
+						//already treated that, the count is there to allow reentrant
+						//mode to pass by
 						continue;
 					}else if(!isset($browsing_structures[$to_val])){
 						//permissions denied
@@ -1652,6 +1659,9 @@ class Browser extends DatamartAppModel {
 	}
 	
 	function buildDrillDownIfNeeded($data, &$node_id){
+		if($node_id == 0){
+			return;
+		}
 		$browsing_result_model = AppModel::getInstance('Datamart', 'BrowsingResult');
 		$parent = $browsing_result_model->find('first', array('conditions' => array("BrowsingResult.id" => $node_id)));
 		if(isset($data[$parent['DatamartStructure']['model']]) && isset($data['Browser'])){
