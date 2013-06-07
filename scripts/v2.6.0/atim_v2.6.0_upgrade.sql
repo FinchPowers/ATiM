@@ -690,5 +690,6 @@ SELECT IF(COUNT(*) = 0,
 ) AS 'txe_radiations table deletion' 
 FROM txe_radiations;
 
-
+INSERT INTO datamart_browsing_controls(id1, id2, flag_active_1_to_2, flag_active_2_to_1, use_field) VALUES
+(5, 5, 1, 1, "parent_id");
 
