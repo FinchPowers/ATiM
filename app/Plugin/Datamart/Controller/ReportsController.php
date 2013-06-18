@@ -3,6 +3,7 @@ class ReportsController extends DatamartAppController {
 	var $uses = array(
 		"Datamart.Report",
 		"Datamart.DatamartStructure",
+		"Datamart.BrowsingResult",
 		"Structure");
 
 	var $paginate = array('Report' => array('limit' => pagination_amount , 'order' => 'Report.name ASC'));
@@ -60,16 +61,25 @@ class ReportsController extends DatamartAppController {
 			// Set criteria to build report/csv
 			$criteria_to_build_report = null;
 			if($csv_creation) {
+				if(array_key_exists('Config', $this->request->data)) {
+					$config = array_merge($this->request->data['Config'], (array_key_exists(0, $this->request->data)? $this->request->data[0] : array()));
+					unset($this->request->data[0]);
+					unset($this->request->data['Config']);
+					$this->configureCsv($config);
+				}
 				// Get criteria from session data for csv 
 				$criteria_to_build_report = $_SESSION['report']['search_criteria'];
-				// Take care about selected items
-				if(!isset($this->request->data[$linked_datamart_structure['DatamartStructure']['model']][$LinkedModel->primaryKey])) $this->redirect('/Pages/err_plugin_system_error?method='.__METHOD__.',line='.__LINE__, null, true);
-				$ids = array_filter($this->request->data[$linked_datamart_structure['DatamartStructure']['model']][$LinkedModel->primaryKey]);
-				if(empty($ids)) $this->redirect('/Pages/err_plugin_system_error?method='.__METHOD__.',line='.__LINE__, null, true);
-				$criteria_to_build_report[$linked_datamart_structure['DatamartStructure']['model']][$LinkedModel->primaryKey] = $ids;			
+				if($LinkedModel) {
+					// Take care about selected items
+					if(!isset($this->request->data[$linked_datamart_structure['DatamartStructure']['model']][$LinkedModel->primaryKey])) $this->redirect('/Pages/err_plugin_system_error?method='.__METHOD__.',line='.__LINE__, null, true);
+					$ids = array_filter($this->request->data[$linked_datamart_structure['DatamartStructure']['model']][$LinkedModel->primaryKey]);
+					if(empty($ids)) $this->redirect('/Pages/err_plugin_system_error?method='.__METHOD__.',line='.__LINE__, null, true);
+					$criteria_to_build_report[$linked_datamart_structure['DatamartStructure']['model']][$LinkedModel->primaryKey] = $ids;
+				}		
 			} else {
 				// Get criteria from search form
-				$criteria_to_build_report = empty($this->request->data)? array() : $this->request->data;			
+				$criteria_to_build_report = empty($this->request->data)? array() : $this->request->data;
+				// Manage data from csv file			
 				foreach($criteria_to_build_report as $model => $fields_parameters) {
 					foreach($fields_parameters as $field => $parameters) {
 						if(preg_match('/^(.+)_with_file_upload$/', $field, $matches)) {
@@ -83,7 +93,35 @@ class ReportsController extends DatamartAppController {
 							unset($criteria_to_build_report[$model][$field]);
 						}
 					}
-				}				
+				}	
+				// Manage data when launched from databrowser node having a nbr of elements > $display_limit
+				if(array_key_exists('node', $criteria_to_build_report)) {
+					$browsing_result = $this->BrowsingResult->find('first', array('conditions' => array('BrowsingResult.id' => $criteria_to_build_report['node']['id'])));
+					$datamart_structure = $browsing_result['DatamartStructure'];
+					if(empty($browsing_result) || empty($datamart_structure)) {
+						$this->redirect('/Pages/err_plugin_system_error?method='.__METHOD__.',line='.__LINE__, null, true);
+					}
+					// Get model and key name
+					$model = null;
+					$lookup_key_name = null;
+					if($datamart_structure['control_master_model']){
+						if(isset($criteria_to_build_report[$datamart_structure['model']])){
+							$model_instance = AppModel::getInstance($datamart_structure['plugin'], $datamart_structure['model'], true);
+							$model = $datamart_structure['model'];
+							$lookup_key_name = $model_instance->primaryKey;
+						}else{
+							$model_instance = AppModel::getInstance($datamart_structure['plugin'], $datamart_structure['control_master_model'], true);
+							$model = $datamart_structure['control_master_model'];
+							$lookup_key_name = $model_instance->primaryKey;
+						}	
+					}else{
+						$model = $datamart_structure['model'];
+						$model_instance = AppModel::getInstance($datamart_structure['plugin'], $datamart_structure['model'], true);
+						$lookup_key_name = $model_instance->primaryKey;
+					}
+					if($criteria_to_build_report[ $model ][ $lookup_key_name ] == 'all') $criteria_to_build_report[ $model ][ $lookup_key_name ] = explode(",", $browsing_result['BrowsingResult']['id_csv']);
+				}
+				// Load search criteria in session
 				$_SESSION['report']['search_criteria'] = $criteria_to_build_report;
 			}
 		
@@ -129,15 +167,16 @@ class ReportsController extends DatamartAppController {
 						$linked_datamart_structure['DatamartStructure']['plugin'],
 						$linked_datamart_structure['DatamartStructure']['model'], 
 						$LinkedModel->primaryKey, 
+						null, 
+						null, 
+						null, 
 						null,
-						$linked_datamart_structure['DatamartStructure']['model'], 
-						$LinkedModel->primaryKey);
-					foreach($linked_datamart_structure_actions as $key => $new_action) {
-						if($new_action['value'] && strpos($new_action['value'], 'Datamart/Csv/csv')) unset($linked_datamart_structure_actions[$key]);
-					}
+						false);
+					$csv_action = "javascript:setCsvPopup('Datamart/Reports/manageReport/$report_id/1/');";
 					$linked_datamart_structure_actions[] = array(
-						'value' => "Datamart/Reports/manageReport/$report_id/1/",
-						'label' => __('export as CSV file (comma-separated values)')
+							'value' => '0',
+							'label' => __('export as CSV file (comma-separated values)'),
+							'value' => sprintf($csv_action, 0)
 					);
 					$linked_datamart_structure_actions[] = array(
 						'label'	=> __("initiate browsing"),
