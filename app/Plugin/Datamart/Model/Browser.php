@@ -251,6 +251,20 @@ class Browser extends DatamartAppModel {
 						'style'	=> $browsing_structures[$to_val]['display_name'],
 						'value'	=> implode(self::$model_separator_str, $to_path)
 					);
+					
+					if($current_id === $to_val){
+						//reentrant
+						$tmp_result['label'] .= ' ' . __('child');
+						$tmp_result['value'] .= 'c';
+						$this->buildItemOptions($tmp_result, $browsing_structures, $to_val, $sub_models_id_filter);
+						$result[] = $tmp_result;
+						
+						$tmp_result = array(
+								'label' => __($browsing_structures[$to_val]['display_name']) . ' ' . __('parent'),
+								'style'	=> $browsing_structures[$to_val]['display_name'],
+								'value'	=> implode(self::$model_separator_str, $to_path) . 'p'
+						);
+					}
 					$this->buildItemOptions($tmp_result, $browsing_structures, $to_val, $sub_models_id_filter);
 					$result[] = $tmp_result;
 					
@@ -1427,12 +1441,20 @@ class Browser extends DatamartAppModel {
 			$control_data = $browsing_ctrl_model->find('first', array('conditions' => array('BrowsingControl.id1' => $parent['DatamartStructure']['id'], 'BrowsingControl.id2' => $browsing['DatamartStructure']['id'])));
 			$parent_model = AppModel::getInstance($parent['DatamartStructure']['plugin'], $parent['DatamartStructure']['control_master_model'] ?: $parent['DatamartStructure']['model'], true);
 			if(!empty($control_data)){
-				$joins[] = array(
+				$to_join = array(
 						'table'		=> $parent_model->table,
 						'alias'		=> $parent_model->name,
 						'type'		=> 'INNER',
 						'conditions'=> array($parent_model->name.'.'.$control_data['BrowsingControl']['use_field'].' = '.$select_key, $parent_model->name.'.'.$parent_model->primaryKey => explode(',', $parent['BrowsingResult']['id_csv']))
 				);
+				if($params['parent_child'] == 'p'){
+					//reentrant browsing, invert the condition
+					$to_join['conditions'] = array(
+							//WRONG KEY
+							$parent_model->name.'.'.$control_data['BrowsingControl']['use_field'] =>  explode(',', $parent['BrowsingResult']['id_csv']), 
+							$parent_model->name.'.'.$parent_model->primaryKey . ' = ' . $select_key);
+				}
+				$joins[] = $to_join;
 			}else{
 				//ids are already contained in the child
 				$control_data = $browsing_ctrl_model->find('first', array('conditions' => array('BrowsingControl.id1' => $browsing['DatamartStructure']['id'], 'BrowsingControl.id2' => $parent['DatamartStructure']['id'])));
@@ -1520,6 +1542,16 @@ class Browser extends DatamartAppModel {
 		if($having){
 			$group[0] .= ' HAVING '.implode(' AND ', $having);
 		}
+		echo $model_to_search->name;
+		pr(array(
+			'conditions'	=> $search_conditions,
+			'fields'		=> array("CONCAT('', ".$select_key.") AS ids"),
+			'recursive'		=> 0,
+			'joins'			=> $joins,
+			'order'			=> array($model_to_search->name.'.'.$model_to_search->primaryKey),
+			'group'			=> $group
+		));
+		die('d');
 		$save_ids = $model_to_search->find('all', array(
 			'conditions'	=> $search_conditions,
 			'fields'		=> array("CONCAT('', ".$select_key.") AS ids"),

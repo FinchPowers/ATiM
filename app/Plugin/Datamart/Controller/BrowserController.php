@@ -76,7 +76,8 @@ class BrowserController extends DatamartAppController {
 		$browsing = null;
 		$check_list = false;
 		$last_control_id = 0;
-		$this->set('control_id', $control_id);
+		$parent_child = false;
+		$this->set('control_id', (int)$control_id); //cast as it might end with c(child) or p(parent)
 		$this->set('merge_to', $merge_to);
 		$this->Browser;//lazy laod
 		
@@ -101,6 +102,10 @@ class BrowserController extends DatamartAppController {
 			if(strpos($control_id, Browser::$sub_model_separator_str) !== false){
 				list($control_id , $sub_structure_id) = explode(Browser::$sub_model_separator_str, $control_id);
 			}
+			if(in_array(substr($control_id, -1), ['c', 'p'])){
+				$parent_child = substr($control_id, -1);
+				$control_id = substr($control_id, 0, -1);
+			}
 			//direct access array (if the user goes from 1 to 4 by going throuhg 2 and 3, the direct access are 2 and 3
 			$direct_id_arr = explode(Browser::$model_separator_str, $control_id);
 			
@@ -122,14 +127,14 @@ class BrowserController extends DatamartAppController {
 				){
 					$sub_struct_ctrl_id = $sub_structure_id;
 				}
-			
+				
 				$params = array(
 						'struct_ctrl_id'		=> $control_id,
 						'sub_struct_ctrl_id'	=> $sub_struct_ctrl_id,
 						'node_id'				=> $node_id,
-						'last'					=> $last_control_id == $control_id
+						'last'					=> $last_control_id == $control_id,
+						'parent_child'			=> $parent_child
 				);
-			
 				if(!$created_node = $this->Browser->createNode($params)){
 					//something went wrong. A flash screen has been called.
 					return;
