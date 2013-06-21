@@ -1447,7 +1447,7 @@ class Browser extends DatamartAppModel {
 						'type'		=> 'INNER',
 						'conditions'=> array($parent_model->name.'.'.$control_data['BrowsingControl']['use_field'].' = '.$select_key, $parent_model->name.'.'.$parent_model->primaryKey => explode(',', $parent['BrowsingResult']['id_csv']))
 				);
-				if($params['parent_child'] == 'p'){
+				if($params['parent_child'] == 'c'){
 					//reentrant browsing, invert the condition
 					$to_join['conditions'] = array(
 							//WRONG KEY
@@ -1542,16 +1542,6 @@ class Browser extends DatamartAppModel {
 		if($having){
 			$group[0] .= ' HAVING '.implode(' AND ', $having);
 		}
-		echo $model_to_search->name;
-		pr(array(
-			'conditions'	=> $search_conditions,
-			'fields'		=> array("CONCAT('', ".$select_key.") AS ids"),
-			'recursive'		=> 0,
-			'joins'			=> $joins,
-			'order'			=> array($model_to_search->name.'.'.$model_to_search->primaryKey),
-			'group'			=> $group
-		));
-		die('d');
 		$save_ids = $model_to_search->find('all', array(
 			'conditions'	=> $search_conditions,
 			'fields'		=> array("CONCAT('', ".$select_key.") AS ids"),
