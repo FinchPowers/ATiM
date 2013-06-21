@@ -1542,6 +1542,25 @@ class Browser extends DatamartAppModel {
 		if($having){
 			$group[0] .= ' HAVING '.implode(' AND ', $having);
 		}
+		if($params['parent_child'] && isset($joins[1]) && $joins[1]['alias'] == $model_to_search->name){
+			//reentrant detailed search
+			$join = &$joins[1];
+			unset($join['conditions'][0]);
+			if($params['parent_child'] == 'c'){
+				$search_conditions = array_merge($search_conditions, $join['conditions']);
+				unset($joins[1]);
+			}else{
+				$joins[1] = array(
+					'alias' 		=> $model_to_search->name.'_2',
+					'table' 		=> $model_to_search->table,
+					'type'			=> 'INNER',
+					'conditions'	=> array(
+						$model_to_search->name.'_2.parent_id = '.$model_to_search->name.'.id',
+							$model_to_search->name.'_2.id' => $join['conditions'][$model_to_search->name.'.id']
+					)
+				);
+			}
+		}
 		$save_ids = $model_to_search->find('all', array(
 			'conditions'	=> $search_conditions,
 			'fields'		=> array("CONCAT('', ".$select_key.") AS ids"),
@@ -1550,7 +1569,6 @@ class Browser extends DatamartAppModel {
 			'order'			=> array($model_to_search->name.'.'.$model_to_search->primaryKey),
 			'group'			=> $group
 		));
-		
 		if($browsing_filter && $save_ids){
 			$temporary_table = 'browsing_tmp_table';
 			$select_field = null;
