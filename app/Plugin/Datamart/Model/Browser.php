@@ -545,6 +545,20 @@ class Browser extends DatamartAppModel {
 			assert($counter < 100) or die("invalid loop");
 		}
 	}
+
+	private static function getBaseTitle($cell){
+		$title = __($cell['DatamartStructure']['display_name']);
+		$word = null;
+		if($cell['BrowsingResult']['parent_children'] == 'c'){
+			$word = __('children');
+		}else if($cell['BrowsingResult']['parent_children'] == 'p'){
+			$word = __('parent');
+		}
+		if($word){
+			$title .= ' '.$word;
+		}
+		return $title;
+	}
 	
 	/**
 	 * @param Int $current_node The id of the current node. Its path will be highlighted
@@ -592,7 +606,7 @@ class Browser extends DatamartAppModel {
 						$class .= " merged";
 					}
 					$count = strlen($cell['BrowsingResult']['id_csv']) ? count(explode(",", $cell['BrowsingResult']['id_csv'])) : 0;
-					$title = __($cell['DatamartStructure']['display_name']);
+					$title = self::getBaseTitle($cell);
 					$info = __($cell['BrowsingResult']['browsing_type']).' - '.AppController::getFormatedDatetimeString($cell['BrowsingResult']['created'], true, true);
 					$cache_key = 'node_'.$lang.$cell['BrowsingResult']['id'];
 					if(!$content = Cache::read($cache_key, 'browser')){
@@ -1644,6 +1658,18 @@ class Browser extends DatamartAppModel {
 		}
 		
 		$save_ids = implode(",", array_unique(array_map(create_function('$val', 'return $val[0]["ids"];'), $save_ids)));
+		if(strlen($save_ids) == 0){
+			//we have an empty set, bail out! (don't save empty result)
+			if($params['last']){
+				//go back 1 page
+				$controller->flash(__("no data matches your search parameters"), "javascript:history.back();", 5);
+			}else{
+				//go to the last node
+				$controller->flash(__("you cannot browse to the requested entities because there is no [%s] matching your request", $browsing['DatamartStructure']['display_name']), "/Datamart/Browser/browse/".$node_id."/", 5);
+			}
+			return false;
+		}
+
 		$browsing_type = null;
 		if(!$org_search_conditions['search_conditions'] || (count($org_search_conditions['search_conditions']) == 1 && $params['sub_struct_ctrl_id']) && !$org_search_conditions['adv_search_conditions'] && !isset($org_search_conditions['counters'])){
 			$browsing_type = 'direct access';
@@ -1655,22 +1681,18 @@ class Browser extends DatamartAppModel {
 			'parent_id'						=> $node_id,
 			'browsing_structures_id'		=> $params['struct_ctrl_id'],
 			'browsing_structures_sub_id'	=> $use_sub_model ? $params['sub_struct_ctrl_id'] : 0,
+			'parent_children'				=> $params['parent_child'],
 			'id_csv'						=> $save_ids,
 			'raw'							=> 1,
 			'browsing_type'					=> $browsing_type,
 			'serialized_search_params'		=> serialize($org_search_conditions)
 		));
 
-		if(strlen($save_ids) == 0){
-			//we have an empty set, bail out! (don't save empty result)
-			if($params['last']){
-				//go back 1 page
-				$controller->flash(__("no data matches your search parameters"), "javascript:history.back();", 5);
-			}else{
-				//go to the last node
-				$controller->flash(__("you cannot browse to the requested entities because there is no [%s] matching your request", $browsing['DatamartStructure']['display_name']), "/Datamart/Browser/browse/".$node_id."/", 5);
-			}
-			return false;
+		if($params['parent_child']){
+			//to be backward compatible, we need to do it separately otherwise
+			//Set::flatten will not work on old identical searches due to
+			//new key
+			$save['parent_children'] = $params['parent_child'];
 		}
 		
 		$tmp = $node_id ? $browsing_result_model->find('first', array('conditions' => Set::flatten($save))) : array();

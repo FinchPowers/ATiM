@@ -1,6 +1,9 @@
 INSERT INTO `versions` (version_number, date_installed, trunk_build_number, branch_build_number) 
 VALUES('2.6.0', NOW(),'to define','to define');
 
+REPLACE INTO i18n (id,en,fr) VALUES
+('children', 'Children', 'Enfants');
+
 -- -----------------------------------------------------------------------------------------------------------------------------------
 -- UPDATE & ADD CORRECTIONS FOR SEARCH ON SPENT TIMES (collection to storage spent time, etc)
 -- -----------------------------------------------------------------------------------------------------------------------------------
@@ -693,3 +696,5 @@ FROM txe_radiations;
 INSERT INTO datamart_browsing_controls(id1, id2, flag_active_1_to_2, flag_active_2_to_1, use_field) VALUES
 (5, 5, 1, 1, "parent_id");
 
+ALTER TABLE datamart_browsing_results
+ ADD COLUMN parent_children CHAR( 1 ) NOT NULL DEFAULT  ' ' AFTER browsing_structures_sub_id;
