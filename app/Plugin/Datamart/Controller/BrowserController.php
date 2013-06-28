@@ -67,7 +67,7 @@ class BrowserController extends DatamartAppController {
 		if(strpos($control_id, Browser::$sub_model_separator_str) !== false){
 			list($control_id , $sub_structure_id) = explode(Browser::$sub_model_separator_str, $control_id);
 		}
-		if(in_array(substr($control_id, -1), ['c', 'p'])){
+		if(in_array(substr($control_id, -1), array('c', 'p'))){
 			$parent_child = substr($control_id, -1);
 			$control_id = substr($control_id, 0, -1);
 		}
