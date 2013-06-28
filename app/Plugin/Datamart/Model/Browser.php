@@ -1697,6 +1697,9 @@ class Browser extends DatamartAppModel {
 		
 		$tmp = $node_id ? $browsing_result_model->find('first', array('conditions' => Set::flatten($save))) : array();
 		if(empty($tmp)){
+			if(!isset($save['BrowsingResult']['parent_children'])){
+				$save['BrowsingResult']['parent_children'] = ' ';
+			}
 			//save fullset
 			$save = $browsing_result_model->save($save);
 			$save['BrowsingResult']['id'] = $browsing_result_model->id;
