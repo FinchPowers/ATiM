@@ -17,10 +17,10 @@
 $content = ob_get_clean();
 
 $bottom = array('undo' => '/StorageLayout/StorageMasters/storageLayout/'.$atim_menu_variables['StorageMaster.id']);
-if(isset($storage_controls_list)) {
+if(isset($storage_types_from_id)) {
 	$add_links = array();
-	foreach ($storage_controls_list as $storage_control) {
-		$add_links[__($storage_control['StorageControl']['storage_type'])] = '/StorageLayout/StorageMasters/add/' . $storage_control['StorageControl']['id'] . '/' . $atim_menu_variables['StorageMaster.id'];
+	foreach ($storage_types_from_id as $storage_control_id => $translated_storage_type) {
+		$add_links[$translated_storage_type] = '/StorageLayout/StorageMasters/add/' . $storage_control_id . '/' . $atim_menu_variables['StorageMaster.id'];
 	}
 	ksort($add_links);
 	$bottom['add to storage'] = (empty($add_links)? '/underdevelopment/': $add_links);

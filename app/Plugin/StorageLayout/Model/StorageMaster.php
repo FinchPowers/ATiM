@@ -30,7 +30,14 @@ class StorageMaster extends StorageLayoutAppModel {
 		
 		if (isset($variables['StorageMaster.id'])) {
 			$result = $this->find('first', array('conditions' => array('StorageMaster.id' => $variables['StorageMaster.id'])));
-			$title = __(($result['StorageControl']['is_tma_block']? 'TMA-blc' : $result['StorageControl']['storage_type']));
+			$title = '';
+			if($result['StorageControl']['is_tma_block']) {
+				$title = __('TMA-blc');
+			} else {
+				$StructurePermissibleValuesCustom = AppModel::getInstance("", "StructurePermissibleValuesCustom", true);
+				$translated_storage_type = $StructurePermissibleValuesCustom->getTranslatedCustomDropdownValue('storage types', $result['StorageControl']['storage_type']);
+				$title = ($translated_storage_type !== false)? $translated_storage_type : $result['StorageControl']['storage_type'];	
+			}
 			
 			$return = array(
 				'menu' => array(null, ($title . ' : ' . $result['StorageMaster']['short_label'])),
@@ -426,13 +433,14 @@ class StorageMaster extends StorageLayoutAppModel {
 		$formatted_data = '';
 		
 		if((!empty($storage_data)) && isset($storage_data['StorageMaster']['id']) && (!empty($storage_data['StorageMaster']['id']))) {
+			$storage_control_model = AppModel::getInstance('StorageLayout', 'StorageControl', true);
 			if(!array_key_exists('StorageControl', $storage_data)){
-				$storage_control_model = AppModel::getInstance('StorageLayout', 'StorageControl', true);
 				$storage_data += $storage_control_model->findById($storage_data['StorageMaster']['storage_control_id']);
 			}
-			$formatted_data = $storage_data['StorageMaster']['selection_label'] . ' [' . $storage_data['StorageMaster']['code'] . '] / '.__($storage_data['StorageControl']['storage_type']);
+			$storage_types_from_id = $this->StorageControl->getStorageTypePermissibleValues();
+			$formatted_data = $storage_data['StorageMaster']['selection_label'] . ' [' . $storage_data['StorageMaster']['code'] . '] / '.(isset($storage_types_from_id[$storage_data['StorageControl']['id']])? $storage_types_from_id[$storage_data['StorageControl']['id']] : $storage_data['StorageControl']['storage_type']);
 		}
-	
+		
 		return $formatted_data;
 	}
 	
@@ -450,12 +458,16 @@ class StorageMaster extends StorageLayoutAppModel {
 	 
 	function getStoragePath($studied_storage_master_id) {
 		$storage_path_data = $this->getPath($studied_storage_master_id, null, '0');
-
+				
+		$storage_control_model = AppModel::getInstance('StorageLayout', 'StorageControl', true);
+		$storage_types_from_id = $this->StorageControl->getStorageTypePermissibleValues();
+		
 		$path_to_display = '';
 		$separator = '';
 		if(!empty($storage_path_data)){
 			foreach($storage_path_data as $new_parent_storage_data) { 
-				$path_to_display .= $separator.$new_parent_storage_data['StorageMaster']['code'] . " (".__($new_parent_storage_data['StorageControl']['storage_type']).")"; 
+				$storage_type = isset($storage_types_from_id[$new_parent_storage_data['StorageControl']['id']])? $storage_types_from_id[$new_parent_storage_data['StorageControl']['id']] : $new_parent_storage_data['StorageControl']['storage_type'];
+				$path_to_display .= $separator.$new_parent_storage_data['StorageMaster']['code'] . " ($storage_type)"; 
 				$separator = ' > ';
 			}
 		}
