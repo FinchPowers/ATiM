@@ -627,7 +627,10 @@ class Browser extends DatamartAppModel {
 								 	//unset the serialization on the sub model since it's already in the title
 								 	unset($search['search_conditions'][$cell['DatamartStructure']['control_master_model'].".".$tmp_model->getControlForeign()]);
 								 	$tmp_model = AppModel::getInstance($cell['DatamartStructure']['plugin'], $cell['DatamartStructure']['control_master_model'], true);
-								 	$tmp_data = $tmp_model->find('first', array('conditions' => array($tmp_model->getControlName().".id" => $cell['BrowsingResult']['browsing_structures_sub_id']), 'recursive' => 0));
+								 	$tmp_data = $tmp_model->find('first', array(
+								 	        'conditions' => array($tmp_model->getControlName().".id" => $cell['BrowsingResult']['browsing_structures_sub_id']), 
+								 	        'recursive'  => 0,
+								 	        'fields'     => '*'));//fixes a bug on a select on an unexisting undefined field
 								 	$title .= " > ".self::getTranslatedDatabrowserLabel($tmp_data[$tmp_model->getControlName()]['databrowser_label']);
 								}else{
 									$structure = StructuresComponent::$singleton->getFormById($cell['DatamartStructure']['structure_id']);
