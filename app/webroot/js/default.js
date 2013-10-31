@@ -129,16 +129,18 @@ function initActions(){
 				return false;
 			}
 			
-			return true;
+			return false;
 		}
 		
-		$("#actionsTarget").fmMenu({
-			data : $.parseJSON(menuItems), 
-			displayFunction : actionDisplay, 
-			defaultLabel : STR_SELECT_AN_ACTION, 
-			inputName : "data[Browser][search_for]",
-			strBack : STR_BACK
-		});
+		if(menuItems.length > 0){
+    		$("#actionsTarget").fmMenu({
+    			data : $.parseJSON(menuItems), 
+    			displayFunction : actionDisplay, 
+    			defaultLabel : STR_SELECT_AN_ACTION, 
+    			inputName : "data[Browser][search_for]",
+    			strBack : STR_BACK
+    		});
+		}
 		
 		if(!window.errorYouMustSelectAnAction){
 			window.errorYouMustSelectAnAction = "js untranslated errorYouMustSelectAnAction";	
@@ -1765,3 +1767,7 @@ function initActions(){
 		$("#miscIdPopup").popup();
 	}
 	
+	function dataBrowserHelp(){
+		var diagram_url =	root_url + 'app/webroot/img/dataBrowser/datamart_structures_relationships.png';
+		$("#default_popup").html('<form enctype="multipart/form-data"><div class="descriptive_heading"><h4>' + STR_DATAMART_STRUCTURE_RELATIONSHIPS + '</h4><p></p></div><div style="padding: 10px; background-color: #fff;"><img src="' + diagram_url + '"/></div></form>').popup();
+	}
