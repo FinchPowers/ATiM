@@ -215,7 +215,7 @@ class ReportsController extends DatamartAppController {
 	// -------------------------------------------------------------------------------------------------------------------
 	
 	function index(){
-		$_SESSION['report']['search_criteria'] = array(); // clear SEARCH criteria
+		$_SESSION['report'] = array(); // clear SEARCH criteria
 		
 		$this->request->data = $this->paginate($this->Report, array('Report.flag_active' => '1'));
 		
@@ -243,12 +243,13 @@ class ReportsController extends DatamartAppController {
 		$this->set( 'atim_menu_variables', array('Report.id' => $report_id));
 		$this->set('atim_menu', $this->Menus->get('/Datamart/Reports/manageReport/%%Report.id%%/'));
 		
-		if(empty($this->request->data) && (!empty($report['Report']['form_alias_for_search'])) && (!$csv_creation)) {
+		if(empty($this->request->data) && (!empty($report['Report']['form_alias_for_search'])) && (!$csv_creation) && !array_key_exists('sort', $this->passedArgs)) {
 			
 			// ** SEARCH FROM DISPLAY **
 			
 			$this->Structures->set($report['Report']['form_alias_for_search'], 'search_form_structure');	
-			$_SESSION['report']['search_criteria'] = array(); // clear SEARCH criteria	
+			$_SESSION['report'][$report_id]['search_criteria'] = array(); // clear SEARCH criteria		
+			$_SESSION['report'][$report_id]['sort_criteria'] = array(); // clear SEARCH criteria	
 		
 		} else {
 			
@@ -266,7 +267,8 @@ class ReportsController extends DatamartAppController {
 			
 			// Set criteria to build report/csv
 			$criteria_to_build_report = null;
-			if($csv_creation) {
+			$criteria_to_sort_report = array();
+			if($csv_creation) {			
 				if(array_key_exists('Config', $this->request->data)) {
 					$config = array_merge($this->request->data['Config'], (array_key_exists(0, $this->request->data)? $this->request->data[0] : array()));
 					unset($this->request->data[0]);
@@ -274,14 +276,26 @@ class ReportsController extends DatamartAppController {
 					$this->configureCsv($config);
 				}
 				// Get criteria from session data for csv 
-				$criteria_to_build_report = $_SESSION['report']['search_criteria'];
+				$criteria_to_build_report = $_SESSION['report'][$report_id]['search_criteria'];
+				$criteria_to_sort_report = $_SESSION['report'][$report_id]['sort_criteria'];
 				if($LinkedModel) {
 					// Take care about selected items
-					if(!isset($this->request->data[$linked_datamart_structure['DatamartStructure']['model']][$LinkedModel->primaryKey])) $this->redirect('/Pages/err_plugin_system_error?method='.__METHOD__.',line='.__LINE__, null, true);
+					if(!isset($this->request->data[$linked_datamart_structure['DatamartStructure']['model']][$LinkedModel->primaryKey])) {
+						pr($this->request->data);
+						pr($linked_datamart_structure['DatamartStructure']['model']);
+						pr($LinkedModel->primaryKey);
+						exit;
+						$this->redirect('/Pages/err_plugin_system_error?method='.__METHOD__.',line='.__LINE__, null, true);
+					}
 					$ids = array_filter($this->request->data[$linked_datamart_structure['DatamartStructure']['model']][$LinkedModel->primaryKey]);
 					if(empty($ids)) $this->redirect('/Pages/err_plugin_system_error?method='.__METHOD__.',line='.__LINE__, null, true);
-					$criteria_to_build_report[$linked_datamart_structure['DatamartStructure']['model']][$LinkedModel->primaryKey] = $ids;
+					$criteria_to_build_report['SelectedItemsForCsv'][$linked_datamart_structure['DatamartStructure']['model']][$LinkedModel->primaryKey] = $ids;
 				}		
+			} else if(array_key_exists('sort', $this->passedArgs)) {
+				// Data sort: Get criteria from session data
+				$criteria_to_build_report = $_SESSION['report'][$report_id]['search_criteria'];
+				$criteria_to_sort_report = array('sort' => $this->passedArgs['sort'], 'direction' => $this->passedArgs['direction']);
+				$_SESSION['report'][$report_id]['sort_criteria'] = $criteria_to_sort_report;
 			} else {
 				// Get criteria from search form
 				$criteria_to_build_report = empty($this->request->data)? array() : $this->request->data;
@@ -329,7 +343,7 @@ class ReportsController extends DatamartAppController {
 					if($criteria_to_build_report[ $model ][ $lookup_key_name ] == 'all') $criteria_to_build_report[ $model ][ $lookup_key_name ] = explode(",", $browsing_result['BrowsingResult']['id_csv']);
 				}
 				// Load search criteria in session
-				$_SESSION['report']['search_criteria'] = $criteria_to_build_report;
+				$_SESSION['report'][$report_id]['search_criteria'] = $criteria_to_build_report;
 			}
 		
 			// Get and manage results
@@ -351,9 +365,18 @@ class ReportsController extends DatamartAppController {
 				$this->set('csv_creation', false);
 				$this->Report->validationErrors[][] = $data_returned_by_fct['error_msg'];
 			
+			} else if(sizeof($data_returned_by_fct['data']) > self::$display_limit) {
+				// Too many results
+				$this->request->data = array();
+				$this->Structures->set('empty', 'result_form_structure');
+				$this->set('result_form_type', 'index');
+				$this->set('display_new_search', (empty($report['Report']['form_alias_for_search'])? false:true));
+				$this->set('csv_creation', false);			
+				$this->Report->validationErrors[][] = 'the report contains too many results - please redefine search criteria';
+				
 			} else {
-				// Set data for display/csv
-				$this->request->data = $data_returned_by_fct['data'];
+				// Set data for display/csv		
+				$this->request->data = AppModel::sortWithUrl($data_returned_by_fct['data'], $criteria_to_sort_report);
 				$this->Structures->set($report['Report']['form_alias_for_results'], 'result_form_structure');
 				$this->set('result_form_type', $report['Report']['form_type_for_results']);
 				$this->set('result_header', $data_returned_by_fct['header']);
@@ -1029,6 +1052,7 @@ class ReportsController extends DatamartAppController {
 		$header = null;
 		$conditions = array();
 		
+		if(isset($parameters['SelectedItemsForCsv']['Participant']['id'])) $parameters['Participant']['id'] = $parameters['SelectedItemsForCsv']['Participant']['id'];
 		if(isset($parameters['Participant']['id'])) {
 			//From databrowser
 			$participant_ids  = array_filter($parameters['Participant']['id']);
@@ -1044,16 +1068,17 @@ class ReportsController extends DatamartAppController {
 		} else {
 			$this->redirect('/Pages/err_plugin_system_error?method='.__METHOD__.',line='.__LINE__, null, true);
 		}
-			
+		
 		$misc_identifier_model = AppModel::getInstance("ClinicalAnnotation", "MiscIdentifier", true);
-		$misc_identifiers = $misc_identifier_model->find('all', array('conditions' => $conditions, 'order' => array('MiscIdentifier.participant_id ASC')));
-		if(sizeof($misc_identifiers) > 1000) {
+		$tmp_res_count = $misc_identifier_model->find('count', array('conditions' => $conditions, 'order' => array('MiscIdentifier.participant_id ASC')));		
+		if($tmp_res_count > self::$display_limit) {
 			return array(
-				'header' => null,
-				'data' => null,
-				'columns_names' => null,
-				'error_msg' => 'more than 1000 records are returned by the query - please redefine search criteria');
+					'header' => null,
+					'data' => null,
+					'columns_names' => null,
+					'error_msg' => 'the report contains too many results - please redefine search criteria');
 		}
+		$misc_identifiers = $misc_identifier_model->find('all', array('conditions' => $conditions, 'order' => array('MiscIdentifier.participant_id ASC')));
 		$data = array();
 		foreach($misc_identifiers as $new_ident){
 			$participant_id = $new_ident['Participant']['id'];
@@ -1065,8 +1090,8 @@ class ReportsController extends DatamartAppController {
 						'first_name' => $new_ident['Participant']['first_name'],
 						'last_name' => $new_ident['Participant']['last_name']),
 					'0' => array(
-						'#BR' => null,
-						'#PR' => null,
+						'BR_Nbr' => null,
+						'PR_Nbr' => null,
 						'hospital_number' => null)
 				);
 			}
@@ -1076,6 +1101,204 @@ class ReportsController extends DatamartAppController {
 		return array(
 				'header' => $header,
 				'data' => $data,
+				'columns_names' => null,
+				'error_msg' => null);
+	}
+	
+	function getAllDerivatives($parameters) {
+		$header = null;
+		$conditions = array();
+		// Get Parameters
+		if(isset($parameters['SampleMaster']['sample_code'])) {
+			//From databrowser
+			$selection_labels  = array_filter($parameters['SampleMaster']['sample_code']);
+			if($selection_labels) $conditions['SampleMaster.sample_code'] = $selection_labels;
+		} else if(isset($parameters['ViewSample']['sample_master_id'])) {
+			//From databrowser
+			$sample_master_ids  = array_filter($parameters['ViewSample']['sample_master_id']);
+			if($sample_master_ids) $conditions['SampleMaster.id'] = $sample_master_ids;
+		} else {
+			$this->redirect('/Pages/err_plugin_system_error?method='.__METHOD__.',line='.__LINE__, null, true);
+		}
+		// Load Model
+		$view_sample_model = AppModel::getInstance("InventoryManagement", "ViewSample", true);
+		$sample_master_model = AppModel::getInstance("InventoryManagement", "SampleMaster", true);
+		// Build Res
+		$sample_master_model->unbindModel(array('belongsTo' => array('Collection'),'hasOne' => array('SpecimenDetail','DerivativeDetail'),'hasMany' => array('AliquotMaster')));
+		$tmp_res_count =  $sample_master_model->find('count', array('conditions' => $conditions, 'fields' => array('SampleMaster.*', 'SampleControl.*'), 'order' => array('SampleMaster.sample_code ASC'), 'recursive' => '0'));
+		if($tmp_res_count > self::$display_limit) {
+			return array(
+				'header' => null,
+				'data' => null,
+				'columns_names' => null,
+				'error_msg' => 'the report contains too many results - please redefine search criteria');
+		}
+		$studied_samples = $sample_master_model->find('all', array('conditions' => $conditions, 'fields' => array('SampleMaster.*', 'SampleControl.*'), 'order' => array('SampleMaster.sample_code ASC'), 'recursive' => '0'));
+		$res = array();
+		foreach($studied_samples as $new_studied_sample) {		
+			$all_derivatives_samples = $this->getChildrenSamples($view_sample_model, array($new_studied_sample['SampleMaster']['id']));
+			if($all_derivatives_samples){
+				foreach($all_derivatives_samples as $new_derivative_sample) {
+					if(array_key_exists('SelectedItemsForCsv', $parameters) && !in_array($new_derivative_sample['ViewSample']['sample_master_id'], $parameters['SelectedItemsForCsv']['ViewSample']['sample_master_id'])) continue;
+					$res[] = array_merge($new_studied_sample, $new_derivative_sample);
+				}
+			}
+		}
+		return array(
+				'header' => $header,
+				'data' => $res,
+				'columns_names' => null,
+				'error_msg' => null);
+	}
+	
+	function getChildrenSamples($view_sample_model, $parent_sample_ids = array()){
+		if(!empty($parent_sample_ids)) {
+			//$view_sample_model->unbindModel(array('hasMany' => array('AliquotMaster')));
+			$children_samples = $view_sample_model->find('all', array('conditions' => array('ViewSample.parent_id' => $parent_sample_ids), 'fields' => array('ViewSample.*, DerivativeDetail.*'), 'order' => array('ViewSample.sample_code ASC'), 'recursive' => '0'));
+			$children_sample_ids = array();
+			foreach($children_samples as $tmp_sample) $children_sample_ids[] = $tmp_sample['ViewSample']['sample_master_id'];
+			$sub_children_samples = $this->getChildrenSamples($view_sample_model, $children_sample_ids);
+			return array_merge($children_samples, $sub_children_samples);
+		}
+		return array();
+	}
+	
+	function getAllSpecimens($parameters) {
+		$header = null;
+		$conditions = array("SampleMaster.id != SampleMaster.initial_specimen_sample_id");
+		// Get Parameters
+		if(isset($parameters['SampleMaster']['sample_code'])) {
+			//From databrowser
+			$selection_labels  = array_filter($parameters['SampleMaster']['sample_code']);
+			if($selection_labels) $conditions['SampleMaster.sample_code'] = $selection_labels;
+		} else if(isset($parameters['ViewSample']['sample_master_id'])) {
+			//From databrowser
+			$sample_master_ids  = array_filter($parameters['ViewSample']['sample_master_id']);
+			if($sample_master_ids) $conditions['SampleMaster.id'] = $sample_master_ids;
+		} else {
+			$this->redirect('/Pages/err_plugin_system_error?method='.__METHOD__.',line='.__LINE__, null, true);
+		}
+		// Load Model
+		$view_sample_model = AppModel::getInstance("InventoryManagement", "ViewSample", true);
+		$sample_master_model = AppModel::getInstance("InventoryManagement", "SampleMaster", true);
+		// Build Res
+		$sample_master_model->unbindModel(array('belongsTo' => array('Collection'),'hasOne' => array('SpecimenDetail','DerivativeDetail'),'hasMany' => array('AliquotMaster')));
+		$tmp_res_count = $sample_master_model->find('count', array('conditions' => $conditions, 'fields' => array('SampleMaster.*', 'SampleControl.*'), 'order' => array('SampleMaster.sample_code ASC'), 'recursive' => '0'));
+		if($tmp_res_count > self::$display_limit) {
+			return array(
+					'header' => null,
+					'data' => null,
+					'columns_names' => null,
+					'error_msg' => 'the report contains too many results - please redefine search criteria');
+		}
+		$studied_samples = $sample_master_model->find('all', array('conditions' => $conditions, 'fields' => array('SampleMaster.*', 'SampleControl.*'), 'order' => array('SampleMaster.sample_code ASC'), 'recursive' => '0'));
+		$res = array();
+		$tmp_initial_specimens = array();
+		foreach($studied_samples as $new_studied_sample) {
+			$initial_specimen = isset($tmp_initial_specimens[$new_studied_sample['SampleMaster']['initial_specimen_sample_id']])? 
+				$tmp_initial_specimens[$new_studied_sample['SampleMaster']['initial_specimen_sample_id']]:
+				$view_sample_model->find('first', array('conditions' => array('ViewSample.sample_master_id' => $new_studied_sample['SampleMaster']['initial_specimen_sample_id']), 'fields' => array('ViewSample.*, SpecimenDetail.*'), 'order' => array('ViewSample.sample_code ASC'), 'recursive' => '0'));
+			$tmp_initial_specimens[$new_studied_sample['SampleMaster']['initial_specimen_sample_id']] = $initial_specimen;	
+			if($initial_specimen){
+				if(!(array_key_exists('SelectedItemsForCsv', $parameters) && !in_array($initial_specimen['ViewSample']['sample_master_id'], $parameters['SelectedItemsForCsv']['ViewSample']['sample_master_id']))) $res[] = array_merge($new_studied_sample, $initial_specimen);
+			}
+		}
+		return array(
+				'header' => $header,
+				'data' => $res,
+				'columns_names' => null,
+				'error_msg' => null);
+	}
+	
+	function getAllChildrenStorage($parameters) {
+		$header = null;
+		$conditions = array();	
+		// Get Parameters
+		if(isset($parameters['StorageMaster']['selection_label'])) {
+			//From databrowser
+			$selection_labels  = array_filter($parameters['StorageMaster']['selection_label']);
+			if($selection_labels) $conditions['StorageMaster.selection_label'] = $selection_labels;
+		} else if(isset($parameters['ViewStorageMaster']['id'])) {
+			//From databrowser
+			$storage_master_ids  = array_filter($parameters['ViewStorageMaster']['id']);
+			if($storage_master_ids) $conditions['StorageMaster.id'] = $storage_master_ids;
+		} else {
+			$this->redirect('/Pages/err_plugin_system_error?method='.__METHOD__.',line='.__LINE__, null, true);
+		}
+		// Load Model
+		$storage_master_model = AppModel::getInstance("StorageLayout", "StorageMaster", true);
+		// Build Res
+		$tmp_res_count = $storage_master_model->find('count', array('conditions' => $conditions, 'fields' => array('StorageMaster.*'), 'order' => array('StorageMaster.selection_label ASC'), 'recursive' => '-1'));	
+		if($tmp_res_count > self::$display_limit) {
+			return array(
+					'header' => null,
+					'data' => null,
+					'columns_names' => null,
+					'error_msg' => 'the report contains too many results - please redefine search criteria');
+		}
+		$studied_storages = $storage_master_model->find('all', array('conditions' => $conditions, 'fields' => array('StorageMaster.*'), 'order' => array('StorageMaster.selection_label ASC'), 'recursive' => '-1'));	
+		$res = array();
+		foreach($studied_storages as $new_studied_storage) {
+			$children_storage_masters = $storage_master_model->children($new_studied_storage['StorageMaster']['id'], false, array('StorageMaster.*'));
+			if($children_storage_masters){
+				foreach($children_storage_masters as $new_child) {
+					if(array_key_exists('SelectedItemsForCsv', $parameters) && !in_array($new_child['StorageMaster']['id'], $parameters['SelectedItemsForCsv']['ViewStorageMaster']['id'])) continue;
+					$res[] = array_merge($new_studied_storage, array('ViewStorageMaster' => $new_child['StorageMaster']));
+				}
+			}
+		}
+		return array(
+				'header' => $header,
+				'data' => $res,
+				'columns_names' => null,
+				'error_msg' => null);
+	}
+	
+	function getAllRelatedDiagnosis($parameters) {
+		$header = null;
+		$conditions = array();
+		// Get Parameters
+		if(isset($parameters['DiagnosisMaster']['id'])) {
+			//From databrowser
+			$diagnosis_master_ids  = array_filter($parameters['DiagnosisMaster']['id']);
+			if($diagnosis_master_ids) $conditions['DiagnosisMaster.id'] = $diagnosis_master_ids;
+		} else if(isset($parameters['Participant']['participant_identifier'])) {
+			//From databrowser
+			$participant_identifiers  = array_filter($parameters['Participant']['participant_identifier']);
+			if($participant_identifiers) $conditions['Participant.participant_identifier'] = $participant_identifiers;
+		} else if(isset($parameters['Participant']['id'])) {
+			//From databrowser
+			$participant_ids  = array_filter($parameters['Participant']['id']);
+			if($participant_ids) $conditions['DiagnosisMaster.participant_id'] = $participant_ids;
+		} else {
+			$this->redirect('/Pages/err_plugin_system_error?method='.__METHOD__.',line='.__LINE__, null, true);
+		}
+		// Load Model
+		$diagnosis_master_model = AppModel::getInstance("ClinicalAnnotation", "DiagnosisMaster", true);
+		// Build Res
+		$diagnosis_master_model->bindModel(
+			array('belongsTo' => array(
+				'Participant' => array(
+					'className'    => 'ClinicalAnnotation.Participant',
+					'foreignKey'    => 'participant_id'))), false);
+		$diagnosis_master_model->unbindModel(array('hasMany' => array('Collection')), false);
+		$tmp_res_count = $diagnosis_master_model->find('count', array('conditions' => $conditions, 'fields' => array('DISTINCT primary_id'), 'recursive' => '0'));
+		if($tmp_res_count > self::$display_limit) {
+			return array(
+					'header' => null,
+					'data' => null,
+					'columns_names' => null,
+					'error_msg' => 'the report contains too many results - please redefine search criteria');
+		}
+		$tmp_primary_ids = $diagnosis_master_model->find('all', array('conditions' => $conditions, 'fields' => array('DISTINCT primary_id'), 'recursive' => '0'));
+		$primary_ids = array();
+		foreach($tmp_primary_ids as $new_primary_id) $primary_ids[] = $new_primary_id['DiagnosisMaster']['primary_id'];
+		$conditions_2 = array('DiagnosisMaster.primary_id' => $primary_ids);
+		if(isset($parameters['SelectedItemsForCsv']['DiagnosisMaster']['id'])) $conditions_2['DiagnosisMaster.id'] = $parameters['SelectedItemsForCsv']['DiagnosisMaster']['id'];
+		$res = $diagnosis_master_model->find('all', array('conditions' => $conditions_2, 'fields' => array('Participant.*','DiagnosisMaster.*','DiagnosisControl.*'), 'order'=> array('Participant.participant_identifier ASC', 'DiagnosisMaster.primary_id ASC', 'DiagnosisMaster.dx_date ASC'), 'recursive' => '0'));
+		return array(
+				'header' => $header,
+				'data' => $res,
 				'columns_names' => null,
 				'error_msg' => null);
 	}
