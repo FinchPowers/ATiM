@@ -31,7 +31,24 @@ INSERT INTO structure_formats(`structure_id`, `structure_field_id`, `display_col
 
 SELECT '----------------------------------------------------------------------------------------------------------' AS 'SPENT TIME FIELDS REVIEW'
 UNION ALL
-SELECT 'Structures & Spent Time Fields to Review (See below)' AS 'SPENT TIME FIELDS REVIEW'
+SELECT 'Structures & Spent Time Fields to Review' AS 'SPENT TIME FIELDS REVIEW'
+UNION ALL
+SELECT 'Spent time field properties should be consistant with the following example (see array below)' AS 'SPENT TIME FIELDS REVIEW'
+UNION ALL
+SELECT '
++--------------------------+-------------+------------------------------+------------------+----------------------------------------+-------------+------------+-------------+----------+-----------+--------------+---------------+----------------+--------------+
+| structure_alias          | model       | field                        | type             | language_label                         | flag_search | flag_index | flag_detail | flag_add | flag_edit | flag_addgrid | flag_editgrid | flag_batchedit | flag_summary |
++--------------------------+-------------+------------------------------+------------------+----------------------------------------+-------------+------------+-------------+----------+-----------+--------------+---------------+----------------+--------------+
+| ad_der_tubes_incl_ml_vol | ViewAliquot | coll_to_stor_spent_time_msg  | input            | collection to storage spent time       |           0 |          1 |           1 |        0 |         0 |            0 |             0 |              0 |            0 |
+| ad_der_tubes_incl_ml_vol | ViewAliquot | coll_to_stor_spent_time_msg  | integer_positive | collection to storage spent time (min) |           1 |          0 |           0 |        0 |         0 |            0 |             0 |              0 |            0 |
+| ad_der_tubes_incl_ml_vol | ViewAliquot | creat_to_stor_spent_time_msg | input            | creation to storage spent time         |           0 |          1 |           1 |        0 |         0 |            0 |             0 |              0 |            0 |
+| ad_der_tubes_incl_ml_vol | ViewAliquot | creat_to_stor_spent_time_msg | integer_positive | creation to storage spent time (min)   |           1 |          0 |           0 |        0 |         0 |            0 |             0 |              0 |            0 |
+| ad_spec_tubes            | ViewAliquot | coll_to_stor_spent_time_msg  | input            | collection to storage spent time       |           0 |          1 |           1 |        0 |         0 |            0 |             0 |              0 |            0 |
+| ad_spec_tubes            | ViewAliquot | coll_to_stor_spent_time_msg  | integer_positive | collection to storage spent time (min) |           1 |          0 |           0 |        0 |         0 |            0 |             0 |              0 |            0 |
+| ad_spec_tubes            | ViewAliquot | rec_to_stor_spent_time_msg   | input            | reception to storage spent time        |           0 |          1 |           1 |        0 |         0 |            0 |             0 |              0 |            0 |
+| ad_spec_tubes            | ViewAliquot | rec_to_stor_spent_time_msg   | integer_positive | reception to storage spent time (min)  |           1 |          0 |           0 |        0 |         0 |            0 |             0 |              0 |            0 |
++--------------------------+-------------+------------------------------+------------------+----------------------------------------+-------------+------------+-------------+----------+-----------+--------------+---------------+----------------+--------------+
+' AS 'SPENT TIME FIELDS REVIEW'
 UNION ALL
 SELECT 'Nothing to do if no result in following section' AS 'SPENT TIME FIELDS REVIEW'
 UNION ALL
@@ -211,10 +228,7 @@ SELECT 'Query to use for control if section above is not empty' AS 'HELP FOR SPE
 UNION ALL 
 SELECT '----------------------------------------------------------------------------------------------------------' AS 'SPENT TIME FIELDS REVIEW'
 UNION ALL 
-SELECT "SELECT structure_alias, model, field, language_label , flag_search, flag_index, flag_detail
-FROM view_structure_formats_simplified 
-WHERE field like '%spent_time_msg' 
-ORDER BY field, structure_alias" AS 'SPENT TIME FIELDS REVIEW'
+SELECT "SELECT structure_alias, model, field, type, language_label , flag_search, flag_index, flag_detail, flag_add, flag_edit, flag_addgrid, flag_editgrid, flag_batchedit,  flag_summary FROM view_structure_formats_simplified WHERE field like '%spent_time_msg' ORDER BY structure_alias, field;" AS 'SPENT TIME FIELDS REVIEW'
 UNION ALL 
 SELECT '' AS 'SPENT TIME FIELDS REVIEW';
 
@@ -374,19 +388,19 @@ INSERT IGNORE INTO i18n (id,en,fr) VALUES
 -- report
 
 INSERT INTO `datamart_reports` (`id`, `name`, `description`, `form_alias_for_search`, `form_alias_for_results`, `form_type_for_results`, `function`, `flag_active`) VALUES
-(null, 'participant identifiers', 'list all identifiers of selected participants', 'report_participant_identifiers_criteria', 'report_participant_identifiers_result', 'index', 'participantIdentifiersSummary', 0);
+(null, 'participant identifiers', 'list all identifiers of selected participants', 'report_participant_identifiers_criteria', 'report_participant_identifiers_result', 'index', 'participantIdentifiersSummary', 1);
 INSERT INTO `datamart_structure_functions` (`id`, `datamart_structure_id`, `label`, `link`, `flag_active`, `ref_single_fct_link`) VALUES
-(null, (SELECT id FROM datamart_structures WHERE model = 'Participant'), 'participant identifiers report', (SELECT CONCAT('/Datamart/Reports/manageReport/',id) FROM datamart_reports WHERE name = 'participant identifiers'), 0, '');
+(null, (SELECT id FROM datamart_structures WHERE model = 'Participant'), 'participant identifiers report', (SELECT CONCAT('/Datamart/Reports/manageReport/',id) FROM datamart_reports WHERE name = 'participant identifiers'), 1, '');
 
 SELECT '----------------------------------------------------------------------------------------------------------' AS 'PARTICIPANT IDENTIFIER REPORT'
 UNION ALL 
-SELECT "Queries to activate 'Participant Identifiers' demo report" as MSG
+SELECT "Queries to desactivate 'Participant Identifiers' demo report" as MSG
 UNION ALL
 SELECT '----------------------------------------------------------------------------------------------------------' AS 'PARTICIPANT IDENTIFIER REPORT'
 UNION ALL 
-SELECT "UPDATE datamart_reports SET flag_active = 1 WHERE name = 'participant identifiers';" as MSG
+SELECT "UPDATE datamart_reports SET flag_active = 0 WHERE name = 'participant identifiers';" as MSG
 UNION ALL
-SELECT "UPDATE datamart_structure_functions SET flag_active = 1 WHERE link = (SELECT CONCAT('/Datamart/Reports/manageReport/',id) FROM datamart_reports WHERE name = 'participant identifiers');" as 'PARTICIPANT IDENTIFIER REPORT'
+SELECT "UPDATE datamart_structure_functions SET flag_active = 0 WHERE link = (SELECT CONCAT('/Datamart/Reports/manageReport/',id) FROM datamart_reports WHERE name = 'participant identifiers');" as 'PARTICIPANT IDENTIFIER REPORT'
 UNION ALL 
 SELECT '' AS 'PARTICIPANT IDENTIFIER REPORT';
 
@@ -854,6 +868,18 @@ INSERT INTO structure_formats(`structure_id`, `structure_field_id`, `display_col
 ((SELECT id FROM structures WHERE alias='ad_der_tubes_incl_ul_vol'), (SELECT id FROM structure_fields WHERE `model`='ViewAliquot' AND `tablename`='view_aliquots' AND `field`='creat_to_stor_spent_time_msg' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0'), '1', '60', '', '1', 'creation to storage spent time (min)', '0', '', '0', '', '1', 'integer_positive', '1', '', '0', '', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'), 
 ((SELECT id FROM structures WHERE alias='ad_der_tubes_incl_ul_vol'), (SELECT id FROM structure_fields WHERE `model`='ViewAliquot' AND `tablename`='view_aliquots' AND `field`='creat_to_stor_spent_time_msg' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0'), '1', '59', '', '1', 'collection to storage spent time (min)', '0', '', '1', 'inv_coll_to_stor_spent_time_msg_defintion', '1', 'integer_positive', '1', '', '0', '', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');
 
+DELETE FROM structure_formats WHERE structure_id = (SELECT id FROM structures WHERE alias='ad_der_tubes_incl_ul_vol')
+AND structure_field_id = (SELECT id FROM structure_fields WHERE `model`='ViewAliquot' AND `tablename`='view_aliquots' AND `field`='creat_to_stor_spent_time_msg' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0')
+AND language_label = 'collection to storage spent time (min)';
+INSERT INTO structure_formats(`structure_id`, `structure_field_id`, `display_column`, `display_order`, `language_heading`, `flag_override_label`, `language_label`, `flag_override_tag`, `language_tag`, `flag_override_help`, `language_help`, `flag_override_type`, `type`, `flag_override_setting`, `setting`, `flag_override_default`, `default`, `flag_add`, `flag_add_readonly`, `flag_edit`, `flag_edit_readonly`, `flag_search`, `flag_search_readonly`, `flag_addgrid`, `flag_addgrid_readonly`, `flag_editgrid`, `flag_editgrid_readonly`, `flag_batchedit`, `flag_batchedit_readonly`, `flag_index`, `flag_detail`, `flag_summary`, `flag_float`) VALUES 
+((SELECT id FROM structures WHERE alias='ad_der_tubes_incl_ul_vol'), (SELECT id FROM structure_fields WHERE `model`='ViewAliquot' AND `tablename`='view_aliquots' AND `field`='coll_to_stor_spent_time_msg' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0'), '1', '59', '', '1', 'collection to storage spent time (min)', '0', '', '1', 'inv_coll_to_stor_spent_time_msg_defintion', '1', 'integer_positive', '1', '', '0', '', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');
+
+DELETE FROM structure_formats WHERE structure_id = (SELECT id FROM structures WHERE alias='ad_spec_tubes_incl_ul_vol')
+AND structure_field_id = (SELECT id FROM structure_fields WHERE `model`='ViewAliquot' AND `tablename`='view_aliquots' AND `field`='creat_to_stor_spent_time_msg' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0')
+AND language_label = 'collection to storage spent time (min)';
+INSERT INTO structure_formats(`structure_id`, `structure_field_id`, `display_column`, `display_order`, `language_heading`, `flag_override_label`, `language_label`, `flag_override_tag`, `language_tag`, `flag_override_help`, `language_help`, `flag_override_type`, `type`, `flag_override_setting`, `setting`, `flag_override_default`, `default`, `flag_add`, `flag_add_readonly`, `flag_edit`, `flag_edit_readonly`, `flag_search`, `flag_search_readonly`, `flag_addgrid`, `flag_addgrid_readonly`, `flag_editgrid`, `flag_editgrid_readonly`, `flag_batchedit`, `flag_batchedit_readonly`, `flag_index`, `flag_detail`, `flag_summary`, `flag_float`) VALUES 
+((SELECT id FROM structures WHERE alias='ad_spec_tubes_incl_ul_vol'), (SELECT id FROM structure_fields WHERE `model`='ViewAliquot' AND `tablename`='view_aliquots' AND `field`='coll_to_stor_spent_time_msg' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0'), '1', '59', '', '1', 'collection to storage spent time (min)', '0', '', '1', 'inv_coll_to_stor_spent_time_msg_defintion', '1', 'integer_positive', '1', '', '0', '', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');
+
 -- -----------------------------------------------------------------------------------------------------------------------------------
 -- Add new specimen type Saliva #2597
 -- -----------------------------------------------------------------------------------------------------------------------------------
@@ -969,32 +995,40 @@ UPDATE storage_controls SET coord_y_title = null WHERE coord_y_title = '';
 UPDATE storage_controls SET coord_y_size = null WHERE coord_y_size = '';
 UPDATE storage_controls SET display_x_size = 0, display_y_size = 0, horizontal_increment = 0 WHERE coord_y_title IS NOT NULL;
 
-SELECT id AS 'storage control id to correct', 'coord_x_ fields error #1' AS 'issue detail' FROM storage_controls 
+SELECT '----------------------------------------------------------------------------------------------------------' AS 'STORAGE CONTROL REVIEW'
+UNION ALL 
+SELECT 'Storage coordinates review. Please correct detected issues if exists (see below)' AS 'STORAGE CONTROL REVIEW'
+UNION ALL 
+SELECT '----------------------------------------------------------------------------------------------------------' AS 'STORAGE CONTROL REVIEW'
+UNION ALL 
+SELECT CONCAT('storage control id ', id ,' to correct : coord_x_ fields (error #1 - see upgrade script for details)') AS 'STORAGE CONTROL REVIEW' FROM storage_controls 
 WHERE coord_x_title IS NULL AND (coord_x_type IS NOT NULL OR coord_x_size IS NOT NULL)
 UNION ALL
-SELECT id AS 'storage control id to correct', 'coord_x_ fields error #2' AS 'issue detail' FROM storage_controls 
+SELECT  CONCAT('storage control id ', id ,' to correct : coord_x_ fields (error #2 - see upgrade script for details)') AS 'STORAGE CONTROL REVIEW' FROM storage_controls 
 WHERE coord_x_type IS NULL AND coord_x_size IS NOT NULL
 UNION ALL
-SELECT id AS 'storage control id to correct', 'coord_x_ fields error #3' AS 'issue detail' FROM storage_controls 
+SELECT  CONCAT('storage control id ', id ,' to correct : coord_x_ fields (error #3 - see upgrade script for details)') AS 'STORAGE CONTROL REVIEW' FROM storage_controls 
 WHERE coord_x_type = 'list' AND (coord_x_title IS NULL OR coord_x_size IS NOT NULL)
 UNION ALL
-SELECT id AS 'storage control id to correct', 'coord_y_ fields error #1' AS 'issue detail' FROM storage_controls 
+SELECT  CONCAT('storage control id ', id ,' to correct : coord_y_ fields (error #1 - see upgrade script for details)') AS 'STORAGE CONTROL REVIEW' FROM storage_controls 
 WHERE coord_y_title IS NULL AND (coord_y_type IS NOT NULL OR coord_y_size IS NOT NULL)
 UNION ALL
-SELECT id AS 'storage control id to correct', 'coord_y_ fields error #2' AS 'issue detail' FROM storage_controls 
+SELECT  CONCAT('storage control id ', id ,' to correct : coord_y_ fields (error #2 - see upgrade script for details)') AS 'STORAGE CONTROL REVIEW' FROM storage_controls 
 WHERE coord_y_type IS NULL AND coord_y_size IS NOT NULL
 UNION ALL
-SELECT id AS 'storage control id to correct', 'coord_x&y_ fields error #1' AS 'issue detail' FROM storage_controls 
+SELECT  CONCAT('storage control id ', id ,' to correct : coord_x&y_ fields (error #1 - see upgrade script for details)') AS 'STORAGE CONTROL REVIEW' FROM storage_controls 
 WHERE coord_x_title IS NULL AND coord_y_title IS NOT NULL
 UNION ALL
-SELECT id AS 'storage control id to correct', 'display_x_size x display_y_size fields error #1' AS 'issue detail' FROM storage_controls 
+SELECT  CONCAT('storage control id ', id ,' to correct : display_x_size x display_y_size fields (error #1 - see upgrade script for details)') AS 'STORAGE CONTROL REVIEW' FROM storage_controls 
 WHERE coord_x_size IS NOT NULL AND coord_y_title IS NULL AND (display_x_size * display_y_size) != coord_x_size
 UNION ALL
-SELECT id AS 'storage control id to correct', 'storage temperature error #1' AS 'issue detail' FROM storage_controls 
+SELECT  CONCAT('storage control id ', id ,' to correct : storage temperature (error #1 - see upgrade script for details)') AS 'STORAGE CONTROL REVIEW' FROM storage_controls 
 WHERE (detail_form_alias LIKE '%storage_temperature%' AND set_temperature = 0) OR (detail_form_alias NOT LIKE '%storage_temperature%' AND set_temperature = 1)
 UNION ALL
-SELECT id AS 'storage control id to correct', 'storage w. spaces error #1' AS 'issue detail' FROM storage_controls 
-WHERE detail_form_alias LIKE '%storage_w_spaces%' AND coord_x_title IS NULL;
+SELECT  CONCAT('storage control id ', id ,' to correct : storage w. spaces (error #1 - see upgrade script for details)') AS 'STORAGE CONTROL REVIEW' FROM storage_controls 
+WHERE detail_form_alias LIKE '%storage_w_spaces%' AND coord_x_title IS NULL
+UNION ALL 
+SELECT '' AS 'STORAGE CONTROL REVIEW';
 
 -- remove storage temperature from detail_form_alias
 
@@ -1269,7 +1303,17 @@ SELECT '------------------------------------------------------------------------
 UNION ALL 
 SELECT "Added new relationsips into databrowser" as TODO
 UNION ALL
-SELECT "Please flag unactive relationsips if required." as TODO
+SELECT "Please flag inactive relationsips if required (see queries below). Don't forget Collection to Annotation, Treatment,Consent, etc if not requried." as TODO
+UNION ALL
+SELECT "SELECT str1.model AS model_1, str2.model AS model_2, use_field FROM datamart_browsing_controls ctrl, datamart_structures str1, datamart_structures str2 WHERE str1.id = ctrl.id1 AND str2.id = ctrl.id2 AND (ctrl.flag_active_1_to_2 = 1 OR ctrl.flag_active_2_to_1 = 1);" AS TODO
+UNION ALL
+SELECT "UPDATE datamart_structure_functions fct, datamart_structures str SET fct.flag_active = 0 WHERE fct.datamart_structure_id = str.id AND/OR str.model IN ('Model1', 'Model2', 'Model...');" as TODO
+UNION ALL
+SELECT "Please flag inactive datamart structure functions if required (see queries below)." as TODO
+UNION ALL
+SELECT "UPDATE datamart_browsing_controls SET flag_active_1_to_2 = 0, flag_active_2_to_1 = 0 WHERE id1 IN (SELECT id FROM datamart_structures WHERE model IN ('Model1', 'Model2', 'Model...')) OR id2 IN (SELECT id FROM datamart_structures WHERE model IN ('Model1', 'Model2', 'Model...'));" as TODO
+UNION ALL
+SELECT "Please change datamart_structures_relationships_en(and fr).png in \app\webroot\img\dataBrowser" as TODO
 UNION ALL
 SELECT '----------------------------------------------------------------------------------------------------------' AS 'TODO';
 
@@ -1419,7 +1463,7 @@ UPDATE datamart_structure_functions SET label = 'create uses/events (aliquot spe
 REPLACE INTO i18n (id,en,fr) VALUES ('use/event creation','Use/Event Creation','Création utilisation/événement');
 INSERT IGNORE INTO i18n (id,en,fr) VALUES
 ('create uses/events (aliquot specific)', 'Create uses/events (aliquot specific)', 'Créer utilisations/événements (aliquot spécifique)'),
-('create use/event (applied to all))', 'Create use/event (applied to all)', 'Créer utilisation/événement (applicabl à tous)'),
+('create use/event (applied to all)', 'Create use/event (applied to all)', 'Créer utilisation/événement (applicabl à tous)'),
 ('no aliquot is contained into this storage', 'No aliquot is contained into this storage', 'Aucun aliquot n''est contenu dans cet entreposage'),
 ('aliquot(s) volume units are different - no used volume can be completed', 'The aliquot(s) volume units are different. No used volume can be completed.', 'Les unités de volume des aliquots sont différents. Aucun volume ne pourra être défini.'),
 ('you are about to create an use/event for %d aliquot(s)', 'You are about to create an use/event for %d aliquot(s)', 'Vous êtes sur le point de créer un(e) utilisation/événement pour %d aliquots'),
@@ -1446,7 +1490,8 @@ INSERT INTO structure_formats(`structure_id`, `structure_field_id`, `display_col
 ((SELECT id FROM structures WHERE alias='view_storage_masters'), (SELECT id FROM structure_fields WHERE `model`='ViewStorageMaster' AND `tablename`='view_storage_masters' AND `field`='short_label' AND `type`='input' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='size=6' AND `default`='' AND `language_help`='stor_short_label_defintion' AND `language_label`='storage short label' AND `language_tag`=''), '0', '6', '', 0, '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '1', '1', '0', '0'), 
 ((SELECT id FROM structures WHERE alias='view_storage_masters'), (SELECT id FROM structure_fields WHERE `model`='ViewStorageMaster' AND `tablename`='view_storage_masters' AND `field`='selection_label' AND `type`='input' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='size=20,url=/storagelayout/storage_masters/autoComplete/' AND `default`='' AND `language_help`='stor_selection_label_defintion' AND `language_label`='storage selection label' AND `language_tag`=''), '0', '8', '', 0, '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '1', '1', '1', '0'), 
 ((SELECT id FROM structures WHERE alias='view_storage_masters'), (SELECT id FROM structure_fields WHERE `model`='ViewStorageMaster' AND `tablename`='view_storage_masters' AND `field`='temperature' AND `type`='float' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='size=5' AND `default`='' AND `language_help`='' AND `language_label`='storage temperature' AND `language_tag`=''), '0', '20', '', 0, '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '1', '1', '1', '0'), 
-((SELECT id FROM structures WHERE alias='view_storage_masters'), (SELECT id FROM structure_fields WHERE `model`='ViewStorageMaster' AND `tablename`='view_storage_masters' AND `field`='temp_unit' AND `type`='select' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='temperature_unit_code')  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='' AND `language_label`='' AND `language_tag`=''), '0', '21', '', 0, '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '1', '1', '1', '0');
+((SELECT id FROM structures WHERE alias='view_storage_masters'), (SELECT id FROM structure_fields WHERE `model`='ViewStorageMaster' AND `tablename`='view_storage_masters' AND `field`='temp_unit' AND `type`='select' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='temperature_unit_code')  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='' AND `language_label`='' AND `language_tag`=''), '0', '21', '', 0, '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '1', '1', '1', '0'),
+((SELECT id FROM structures WHERE alias='view_storage_masters'), (SELECT id FROM structure_fields WHERE `model`='ViewStorageMaster' AND `tablename`='view_storage_masters' AND `field`='empty_spaces'), '0', '24', '', 0, '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '1', '1', '1', '0');
 
 UPDATE structure_formats SET `structure_field_id`=(SELECT `id` FROM structure_fields WHERE `model`='ViewStorageMaster' AND `tablename`='view_storage_masters' AND `field`='empty_spaces' AND `type`='integer_positive' AND `structure_value_domain` IS NULL ) WHERE structure_id=(SELECT id FROM structures WHERE alias='view_storage_masters') AND structure_field_id=(SELECT id FROM structure_fields WHERE `model`='0' AND `tablename`='' AND `field`='empty_spaces' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0');
 
@@ -1469,10 +1514,371 @@ INSERT INTO external_links (name, link) VALUES ('databrowser_help', 'http://www.
 INSERT IGNORE INTO i18n (id,en,fr) VALUES
 ('data types relationship diagram','Data Types Relationship Diagram','Diagramme des realtions des types de données'),
 ('link to databrowser wiki page %s  + datamart structures relationship diagram access',
-'The DataBrowser is a tool that allows you to browse from one data type to another through various search forms.<br>More information about databrowser is available <a href="%s" target="blank">here</a>.<br>By default, the system will use the shortest way to browse from one data type to another.<br>Be sure an appropriated way has been used checking the following document: ',
+'The DataBrowser is a tool that allows you to browse from one data type to another through various search forms.<br>More information about databrowser is available <a href="%s" target="blank">here</a>.<br>By default, the system will use the shortest way to browse from one data type to another.<br>Be sure an appropriate way has been used checking the following document: ',
 'Le Navigateur de données est un outil qui vous permet de naviguer d''un type de données à un autre à travers différents formulaires de recherche.<br>Plus d''informations sur le Navigateur de données sont disponibles <a href="%s" target="blank">ici</a>.<br>Par défaut, le système utilisera le chemin le plus court pour aller d''un type de données à un autre.<br>Assurez-vous qu''un chemin approprié a été utilisé en vous basant sur le diagramme suivant: ');
 REPLACE INTO i18n (id,en,fr) VALUES
 ('no data matches your search parameters',
-'No data matches your search parameters!<br><br><i>Note the system used the shortest way to browse from the previous data type to the selected one. Be sure no other appropriated way exists to browse your data checking the ''Data Types Relationship Diagram''.</i>',
+'No data matches your search parameters!<br><br><i>Note the system used the shortest way to browse from the previous data type to the selected one. Be sure no other appropriate way exists to browse your data checking the ''Data Types Relationship Diagram''.</i>',
 'Aucune données ne correspond à vos critères de recherche!<br><br><i>Notez que le système à utilisé le chemin le plus court pour aller du précédant type de données à celui sélectionné. Assurez-vous qu''aucun autre chemin plus approprié ne peut être utilisé en vous basant sur le ''Diagramme des realtions des types de données''.</i>');
  
+ -- -----------------------------------------------------------------------------------------------------------------------------------
+-- Replace/Add new i18n
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+REPLACE INTO i18n (id,en,fr)
+VALUES
+('aliquot internal use code', 'Use/Event Defintion', 'Définition de l''utilisation/événement'),
+('treatment precision', 'Treatment Precision', 'Précisions de Traitment');
+UPDATE structure_fields SET language_label = 'use counter' WHERE field = 'use_counter';
+INSERT INTO i18n (id,en,fr) VALUES ('use counter', 'Uses/Events', 'Utilisations/Événements');
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Control table generic fields #2673
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+ALTER TABLE lbd_dna_extractions DROP COLUMN deleted;
+ALTER TABLE lbd_slide_creations DROP COLUMN deleted;
+ALTER TABLE consent_masters MODIFY consent_control_id int(11) NOT NULL DEFAULT '0';
+ALTER TABLE dxd_bloods MODIFY diagnosis_master_id int(11) NOT NULL;
+ALTER TABLE dxd_tissues MODIFY diagnosis_master_id int(11) NOT NULL;
+ALTER TABLE lbd_dna_extractions DROP PRIMARY KEY; ALTER TABLE lbd_dna_extractions MODIFY lab_book_master_id int(11) NOT NULL;
+ALTER TABLE lbd_slide_creations DROP PRIMARY KEY; ALTER TABLE lbd_slide_creations MODIFY lab_book_master_id int(11) NOT NULL;
+ALTER TABLE permissions_presets MODIFY id int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE permissions_presets MODIFY created datetime DEFAULT NULL;
+ALTER TABLE permissions_presets MODIFY modified datetime DEFAULT NULL;
+ALTER TABLE protocol_extend_masters MODIFY protocol_extend_control_id int(11) NOT NULL DEFAULT '0';
+ALTER TABLE protocol_masters MODIFY protocol_control_id int(11) NOT NULL DEFAULT '0';
+ALTER TABLE protocol_masters ADD CONSTRAINT FK_protocol_masters_aliquot_controls FOREIGN KEY (protocol_control_id) REFERENCES `protocol_controls` (`id`);
+ALTER TABLE rtbforms MODIFY id int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE sd_der_cell_lysates MODIFY sample_master_id int(11) NOT NULL;
+ALTER TABLE sd_der_cell_lysates ADD CONSTRAINT FK_sd_der_cell_lysates_sample_masters FOREIGN KEY (sample_master_id) REFERENCES sample_masters (id);
+ALTER TABLE shipment_contacts MODIFY id int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE shipment_contacts MODIFY created datetime DEFAULT NULL;
+ALTER TABLE shipment_contacts MODIFY modified datetime DEFAULT NULL;
+ALTER TABLE sopd_general_alls MODIFY sop_master_id int(11) NOT NULL;
+ALTER TABLE sopd_general_alls ADD CONSTRAINT FK_sopd_general_alls_sop_masters FOREIGN KEY (sop_master_id) REFERENCES sop_masters (id);
+ALTER TABLE sopd_inventory_alls MODIFY sop_master_id int(11) NOT NULL;
+ALTER TABLE sopd_inventory_alls ADD CONSTRAINT FK_sopd_inventory_alls_sop_masters FOREIGN KEY (sop_master_id) REFERENCES sop_masters (id);
+ALTER TABLE sop_masters MODIFY sop_control_id int(11) NOT NULL DEFAULT '0';
+ALTER TABLE sop_masters ADD CONSTRAINT FK_sop_masters_sop_controls FOREIGN KEY (sop_control_id) REFERENCES sop_controls (id);
+ALTER TABLE structure_permissible_values_customs MODIFY id int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE treatment_extend_masters MODIFY treatment_extend_control_id int(11) NOT NULL DEFAULT '0';
+ALTER TABLE treatment_masters MODIFY treatment_control_id int(11) NOT NULL DEFAULT '0';
+
+ALTER TABLE dxd_primaries_revs DROP COLUMN deleted;
+ALTER TABLE dxd_progressions_revs DROP COLUMN deleted;
+ALTER TABLE dxd_recurrences_revs DROP COLUMN deleted;
+ALTER TABLE dxd_remissions_revs DROP COLUMN deleted;
+
+ALTER TABLE dxd_secondaries_revs DROP COLUMN deleted;
+DROP INDEX participant_id ON event_masters_revs;
+DROP INDEX diagnosis_id ON event_masters_revs;
+DROP INDEX storage_id ON shelves_revs;
+
+ALTER TABLE consent_masters_revs MODIFY consent_control_id int(11) NOT NULL DEFAULT '0';
+ALTER TABLE dxd_bloods_revs MODIFY diagnosis_master_id int(11) NOT NULL DEFAULT '0';
+ALTER TABLE dxd_tissues_revs MODIFY diagnosis_master_id int(11) NOT NULL DEFAULT '0';
+ALTER TABLE protocol_extend_masters_revs MODIFY protocol_extend_control_id int(11) NOT NULL DEFAULT '0';
+ALTER TABLE treatment_extend_masters_revs MODIFY treatment_extend_control_id int(11) NOT NULL DEFAULT '0';
+ALTER TABLE treatment_masters_revs MODIFY treatment_control_id int(11) NOT NULL DEFAULT '0';
+ALTER TABLE dxd_bloods_revs MODIFY diagnosis_master_id int(11) NOT NULL;
+ALTER TABLE dxd_tissues_revs MODIFY diagnosis_master_id int(11) NOT NULL;
+
+ALTER TABLE shelves_revs MODIFY version_id int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE permissions_presets_revs MODIFY id int(11) NOT NULL;
+ALTER TABLE rtbforms_revs MODIFY id int(11) NOT NULL;
+ALTER TABLE shipment_contacts_revs MODIFY id int(11) NOT NULL;
+ALTER TABLE structure_permissible_values_customs_revs MODIFY id int(11) NOT NULL;
+
+DROP INDEX event_master_id ON ed_all_adverse_events_adverse_events_revs;
+DROP INDEX event_master_id ON ed_all_clinical_followups_revs;
+DROP INDEX event_master_id ON ed_all_clinical_presentations_revs;
+DROP INDEX event_master_id ON ed_all_comorbidities_revs;
+DROP INDEX event_master_id ON ed_all_lifestyle_smokings_revs;
+DROP INDEX event_master_id ON ed_all_protocol_followups_revs;
+DROP INDEX event_master_id ON ed_all_study_researches_revs;
+DROP INDEX event_master_id ON ed_breast_screening_mammograms_revs;
+DROP INDEX diagnosis_master_id ON ed_cap_report_ampullas_revs;
+DROP INDEX diagnosis_master_id ON ed_cap_report_colon_biopsies_revs;
+DROP INDEX diagnosis_master_id ON ed_cap_report_colon_rectum_resections_revs;
+DROP INDEX diagnosis_master_id ON ed_cap_report_distalexbileducts_revs;
+DROP INDEX diagnosis_master_id ON ed_cap_report_gallbladders_revs;
+DROP INDEX diagnosis_master_id ON ed_cap_report_hepatocellular_carcinomas_revs;
+DROP INDEX diagnosis_master_id ON ed_cap_report_intrahepbileducts_revs;
+DROP INDEX diagnosis_master_id ON ed_cap_report_pancreasendos_revs;
+DROP INDEX diagnosis_master_id ON ed_cap_report_pancreasexos_revs;
+DROP INDEX diagnosis_master_id ON ed_cap_report_perihilarbileducts_revs;
+DROP INDEX diagnosis_master_id ON ed_cap_report_smintestines_revs;
+DROP INDEX event_control_id ON event_masters_revs;
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Create a report to list all derivatives from a list of specimens  #2687
+-- Add report to list all specimens from a list of samples   #2686
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+INSERT INTO `datamart_reports` (`id`, `name`, `description`, `form_alias_for_search`, `form_alias_for_results`, `form_type_for_results`, `function`, `flag_active`, associated_datamart_structure_id) VALUES
+(null, 'initial specimens display', 'list all initial specimens from a list of samples', 'report_initial_specimens_criteria_and_result', 'report_initial_specimens_criteria_and_result', 'index', 'getAllSpecimens', 1, (SELECT id FROM datamart_structures WHERE model = 'ViewSample')),
+(null, 'all derivatives display', 'list all derivatives from a list of samples', 'report_list_all_derivatives_criteria_and_result', 'report_list_all_derivatives_criteria_and_result', 'index', 'getAllDerivatives', 1, (SELECT id FROM datamart_structures WHERE model = 'ViewSample'));
+INSERT INTO `datamart_structure_functions` (`id`, `datamart_structure_id`, `label`, `link`, `flag_active`, `ref_single_fct_link`) VALUES
+(null, (SELECT id FROM datamart_structures WHERE model = 'ViewSample'), 'initial specimens display', (SELECT CONCAT('/Datamart/Reports/manageReport/',id) FROM datamart_reports WHERE name = 'initial specimens display'), 1, ''),
+(null, (SELECT id FROM datamart_structures WHERE model = 'ViewSample'), 'all derivatives display', (SELECT CONCAT('/Datamart/Reports/manageReport/',id) FROM datamart_reports WHERE name = 'all derivatives display'), 1, '');
+
+INSERT INTO structures(`alias`) VALUES ('report_list_all_derivatives_criteria_and_result');
+INSERT INTO structure_formats(`structure_id`, `structure_field_id`, `display_column`, `display_order`, `language_heading`, `flag_override_label`, `language_label`, `flag_override_tag`, `language_tag`, `flag_override_help`, `language_help`, `flag_override_type`, `type`, `flag_override_setting`, `setting`, `flag_override_default`, `default`, `flag_add`, `flag_add_readonly`, `flag_edit`, `flag_edit_readonly`, `flag_search`, `flag_search_readonly`, `flag_addgrid`, `flag_addgrid_readonly`, `flag_editgrid`, `flag_editgrid_readonly`, `flag_batchedit`, `flag_batchedit_readonly`, `flag_index`, `flag_detail`, `flag_summary`, `flag_float`) VALUES 
+((SELECT id FROM structures WHERE alias='report_list_all_derivatives_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='ViewSample' AND `tablename`='' AND `field`='acquisition_label' AND `type`='input' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='size=20' AND `default`='' AND `language_help`='inv_acquisition_label_defintion' AND `language_label`='acquisition_label' AND `language_tag`=''), '0', '1', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_list_all_derivatives_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='ViewSample' AND `tablename`='' AND `field`='participant_identifier' AND `type`='input' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='size=30' AND `default`='' AND `language_help`='' AND `language_label`='participant identifier' AND `language_tag`=''), '0', '1', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_list_all_derivatives_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='ViewSample' AND `tablename`='' AND `field`='initial_specimen_sample_type' AND `type`='select' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='specimen_sample_type')  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='' AND `language_label`='initial specimen type' AND `language_tag`=''), '0', '3', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_list_all_derivatives_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='ViewSample' AND `tablename`='' AND `field`='sample_code' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0'), '0', '10', 'derivatives', '0', '', '0', '', '0', '', '0', '', '1', 'size=30', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_list_all_derivatives_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='ViewSample' AND `tablename`='' AND `field`='parent_sample_type' AND `type`='select' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='parent_sample_type')  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='generated_parent_sample_sample_type_help' AND `language_label`='parent sample type' AND `language_tag`=''), '0', '11', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_list_all_derivatives_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='ViewSample' AND `tablename`='' AND `field`='sample_type' AND `type`='select' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='sample_type')  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='' AND `language_label`='sample type' AND `language_tag`=''), '0', '12', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_list_all_derivatives_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='SampleMaster' AND `tablename`='sample_masters' AND `field`='sample_code' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0'), '0', '101', 'selected parent samples', '0', '', '0', '', '0', '', '0', '', '1', '', '0', '', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_list_all_derivatives_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='SampleControl' AND `tablename`='sample_controls' AND `field`='sample_type' AND `type`='select' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='sample_type')  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='' AND `language_label`='sample type' AND `language_tag`=''), '0', '102', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0');
+INSERT INTO structure_formats(`structure_id`, `structure_field_id`, `display_column`, `display_order`, `language_heading`, `flag_override_label`, `language_label`, `flag_override_tag`, `language_tag`, `flag_override_help`, `language_help`, `flag_override_type`, `type`, `flag_override_setting`, `setting`, `flag_override_default`, `default`, `flag_add`, `flag_add_readonly`, `flag_edit`, `flag_edit_readonly`, `flag_search`, `flag_search_readonly`, `flag_addgrid`, `flag_addgrid_readonly`, `flag_editgrid`, `flag_editgrid_readonly`, `flag_batchedit`, `flag_batchedit_readonly`, `flag_index`, `flag_detail`, `flag_summary`, `flag_float`) VALUES 
+((SELECT id FROM structures WHERE alias='report_list_all_derivatives_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='DerivativeDetail' AND `tablename`='derivative_details' AND `field`='creation_site' AND `type`='select' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='custom_laboratory_site')  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='' AND `language_label`='creation site' AND `language_tag`=''), '0', '20', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_list_all_derivatives_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='DerivativeDetail' AND `tablename`='derivative_details' AND `field`='creation_datetime' AND `type`='datetime' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='inv_creation_datetime_defintion' AND `language_label`='creation date' AND `language_tag`='' LIMIT 0,1), '0', '21', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_list_all_derivatives_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='DerivativeDetail' AND `tablename`='derivative_details' AND `field`='creation_by' AND `type`='select' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='custom_laboratory_staff')  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='' AND `language_label`='created by' AND `language_tag`=''), '0', '22', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '1', '0', '0', '0');
+
+INSERT INTO structures(`alias`) VALUES ('report_initial_specimens_criteria_and_result');
+INSERT INTO structure_formats(`structure_id`, `structure_field_id`, `display_column`, `display_order`, `language_heading`, `flag_override_label`, `language_label`, `flag_override_tag`, `language_tag`, `flag_override_help`, `language_help`, `flag_override_type`, `type`, `flag_override_setting`, `setting`, `flag_override_default`, `default`, `flag_add`, `flag_add_readonly`, `flag_edit`, `flag_edit_readonly`, `flag_search`, `flag_search_readonly`, `flag_addgrid`, `flag_addgrid_readonly`, `flag_editgrid`, `flag_editgrid_readonly`, `flag_batchedit`, `flag_batchedit_readonly`, `flag_index`, `flag_detail`, `flag_summary`, `flag_float`) VALUES 
+((SELECT id FROM structures WHERE alias='report_initial_specimens_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='ViewSample' AND `tablename`='' AND `field`='acquisition_label' AND `type`='input' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='size=20' AND `default`='' AND `language_help`='inv_acquisition_label_defintion' AND `language_label`='acquisition_label' AND `language_tag`=''), '0', '1', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_initial_specimens_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='ViewSample' AND `tablename`='' AND `field`='participant_identifier' AND `type`='input' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='size=30' AND `default`='' AND `language_help`='' AND `language_label`='participant identifier' AND `language_tag`=''), '0', '1', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_initial_specimens_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='ViewSample' AND `tablename`='' AND `field`='initial_specimen_sample_type' AND `type`='select' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='specimen_sample_type')  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='' AND `language_label`='initial specimen type' AND `language_tag`=''), '0', '3', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_initial_specimens_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='ViewSample' AND `tablename`='' AND `field`='sample_code' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0'), '0', '10', 'specimens', '0', '', '0', '', '0', '', '0', '', '1', 'size=30', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_initial_specimens_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='ViewSample' AND `tablename`='' AND `field`='parent_sample_type' AND `type`='select' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='parent_sample_type')  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='generated_parent_sample_sample_type_help' AND `language_label`='parent sample type' AND `language_tag`=''), '0', '11', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_initial_specimens_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='ViewSample' AND `tablename`='' AND `field`='sample_type' AND `type`='select' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='sample_type')  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='' AND `language_label`='sample type' AND `language_tag`=''), '0', '12', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_initial_specimens_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='SampleMaster' AND `tablename`='sample_masters' AND `field`='sample_code' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0'), '0', '101', 'selected derivatives', '0', '', '0', '', '0', '', '0', '', '1', '', '0', '', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_initial_specimens_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='SampleControl' AND `tablename`='sample_controls' AND `field`='sample_type' AND `type`='select' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='sample_type')  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='' AND `language_label`='sample type' AND `language_tag`=''), '0', '102', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0');
+INSERT INTO structure_formats(`structure_id`, `structure_field_id`, `display_column`, `display_order`, `language_heading`, `flag_override_label`, `language_label`, `flag_override_tag`, `language_tag`, `flag_override_help`, `language_help`, `flag_override_type`, `type`, `flag_override_setting`, `setting`, `flag_override_default`, `default`, `flag_add`, `flag_add_readonly`, `flag_edit`, `flag_edit_readonly`, `flag_search`, `flag_search_readonly`, `flag_addgrid`, `flag_addgrid_readonly`, `flag_editgrid`, `flag_editgrid_readonly`, `flag_batchedit`, `flag_batchedit_readonly`, `flag_index`, `flag_detail`, `flag_summary`, `flag_float`) VALUES 
+((SELECT id FROM structures WHERE alias='report_initial_specimens_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='SpecimenDetail' AND `tablename`='specimen_details' AND `field`='supplier_dept' AND `type`='select' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='custom_specimen_supplier_dept')  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='' AND `language_label`='supplier dept' AND `language_tag`=''), '0', '20', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_initial_specimens_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='SpecimenDetail' AND `tablename`='specimen_details' AND `field`='reception_by' AND `type`='select' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='custom_laboratory_staff')  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='' AND `language_label`='reception by' AND `language_tag`=''), '0', '21', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_initial_specimens_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='SpecimenDetail' AND `tablename`='specimen_details' AND `field`='reception_datetime' AND `type`='datetime' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='inv_reception_datetime_defintion' AND `language_label`='reception date' AND `language_tag`=''), '0', '22', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_initial_specimens_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='SpecimenDetail' AND `tablename`='specimen_details' AND `field`='time_at_room_temp_mn' AND `type`='integer' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='size=3' AND `default`='' AND `language_help`='time_at_room_temp_mn_help' AND `language_label`='time at room temp (mn)' AND `language_tag`=''), '0', '23', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0');
+
+INSERT IGNORE INTO i18n (id,en,fr) VALUES 
+('selected parent samples','Selected Parent Samples','Échantillons parents sélectionnés'),
+('initial specimens display', 'Initial Specimens Display', 'Affichage des spécimens sources'),
+('all derivatives display', 'All Derivatives Display', 'Affichage des échantillons dérivés'),
+('list all derivatives from a list of samples', 'List all derivatives created from a list of samples', 'Afficher tous les échantillons dérivés créés à partir d''une liste d''échantillons'),
+('list all initial specimens from a list of samples', 'List all initial specimens from a list of samples', 'Afficher tous les spécimens sources d''une liste d''échantillons'),
+('more than 100 samples have been selected - please redefine search criteria', 'More than 100 samples have been defines as search criteria. Please redefine search criteria.', 'Plus de 100 échantillons ont été définis comme critères de recherche. Veuillez redéfinir les critères de recherche.');
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Create a report to list all storaged (direct child or not) of a storage #2689
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+INSERT INTO `datamart_reports` (`id`, `name`, `description`, `form_alias_for_search`, `form_alias_for_results`, `form_type_for_results`, `function`, `flag_active`, associated_datamart_structure_id) VALUES
+(null, 'list all children storages', 'list all children from a list of storages', 'report_list_all_storages_criteria_and_result', 'report_list_all_storages_criteria_and_result', 'index', 'getAllChildrenStorage', 1, (SELECT id FROM datamart_structures WHERE model = 'ViewStorageMaster'));
+INSERT INTO `datamart_structure_functions` (`id`, `datamart_structure_id`, `label`, `link`, `flag_active`, `ref_single_fct_link`) VALUES
+(null, (SELECT id FROM datamart_structures WHERE model = 'ViewStorageMaster'), 'list all children storages', (SELECT CONCAT('/Datamart/Reports/manageReport/',id) FROM datamart_reports WHERE name = 'list all children storages'), 1, '');
+
+INSERT INTO structures(`alias`) VALUES ('report_list_all_storages_criteria_and_result');
+INSERT INTO structure_formats(`structure_id`, `structure_field_id`, `display_column`, `display_order`, `language_heading`, `flag_override_label`, `language_label`, `flag_override_tag`, `language_tag`, `flag_override_help`, `language_help`, `flag_override_type`, `type`, `flag_override_setting`, `setting`, `flag_override_default`, `default`, `flag_add`, `flag_add_readonly`, `flag_edit`, `flag_edit_readonly`, `flag_search`, `flag_search_readonly`, `flag_addgrid`, `flag_addgrid_readonly`, `flag_editgrid`, `flag_editgrid_readonly`, `flag_batchedit`, `flag_batchedit_readonly`, `flag_index`, `flag_detail`, `flag_summary`, `flag_float`) VALUES 
+((SELECT id FROM structures WHERE alias='report_list_all_storages_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='StorageMaster' AND `tablename`='storage_masters' AND `field`='code' AND `type`='input' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='size=30' AND `default`='' AND `language_help`='storage_code_help' AND `language_label`='storage code' AND `language_tag`=''), '0', '2', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_list_all_storages_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='StorageMaster' AND `tablename`='storage_masters' AND `field`='storage_control_id' AND `type`='select' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='storage_types_from_control_id')  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='' AND `language_label`='storage type' AND `language_tag`=''), '0', '1', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_list_all_storages_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='StorageMaster' AND `tablename`='storage_masters' AND `field`='short_label' AND `type`='input' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='size=6' AND `default`='' AND `language_help`='stor_short_label_defintion' AND `language_label`='storage short label' AND `language_tag`=''), '0', '3', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_list_all_storages_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='StorageMaster' AND `tablename`='storage_masters' AND `field`='selection_label' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0'), '0', '0', 'stutied storages', '1', 'storage selection label', '0', '', '0', '', '0', '', '1', 'size=20,url=/storagelayout/storage_masters/autoComplete/', '0', '', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_list_all_storages_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='StorageMaster' AND `tablename`='storage_masters' AND `field`='temperature' AND `type`='float' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='size=5' AND `default`='' AND `language_help`='' AND `language_label`='storage temperature' AND `language_tag`=''), '0', '5', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_list_all_storages_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='StorageMaster' AND `tablename`='storage_masters' AND `field`='temp_unit' AND `type`='select' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='temperature_unit_code')  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='' AND `language_label`='' AND `language_tag`=''), '0', '6', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0');
+INSERT INTO structure_formats(`structure_id`, `structure_field_id`, `display_column`, `display_order`, `language_heading`, `flag_override_label`, `language_label`, `flag_override_tag`, `language_tag`, `flag_override_help`, `language_help`, `flag_override_type`, `type`, `flag_override_setting`, `setting`, `flag_override_default`, `default`, `flag_add`, `flag_add_readonly`, `flag_edit`, `flag_edit_readonly`, `flag_search`, `flag_search_readonly`, `flag_addgrid`, `flag_addgrid_readonly`, `flag_editgrid`, `flag_editgrid_readonly`, `flag_batchedit`, `flag_batchedit_readonly`, `flag_index`, `flag_detail`, `flag_summary`, `flag_float`) VALUES 
+((SELECT id FROM structures WHERE alias='report_list_all_storages_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='ViewStorageMaster' AND `tablename`='view_storage_masters' AND `field`='code' AND `type`='input' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='size=30' AND `default`='' AND `language_help`='storage_code_help' AND `language_label`='storage code' AND `language_tag`=''), '0', '103', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_list_all_storages_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='ViewStorageMaster' AND `tablename`='view_storage_masters' AND `field`='storage_control_id' AND `type`='select' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='storage_types_from_control_id')  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='' AND `language_label`='storage type' AND `language_tag`=''), '0', '102', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_list_all_storages_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='ViewStorageMaster' AND `tablename`='view_storage_masters' AND `field`='short_label' AND `type`='input' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='size=6' AND `default`='' AND `language_help`='stor_short_label_defintion' AND `language_label`='storage short label' AND `language_tag`=''), '0', '104', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_list_all_storages_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='ViewStorageMaster' AND `tablename`='view_storage_masters' AND `field`='selection_label' AND `type`='input' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='size=20,url=/storagelayout/storage_masters/autoComplete/' AND `default`='' AND `language_help`='stor_selection_label_defintion' AND `language_label`='storage selection label' AND `language_tag`=''), '0', '101', 'children storages', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0');
+
+INSERT IGNORE INTO i18n (id,en,fr) VALUES 
+('list all children storages', 'List all children storages', 'Afficher tous les sous-entreposages'),
+('list all children from a list of storages', 'List all children storages from a list of storages', 'Afficher tous les sous-entreposages d''une liste d''entreposages'),
+('more than 10 storages have been selected - please redefine search criteria', 'More than 10 storages have been defines as search criteria. Please redefine search criteria.', 'Plus de 10 entreposages ont été définis comme critères de recherche. Veuillez redéfinir les critères de recherche.'),
+('stutied storages', 'Stutied Storages', 'Entreposages étudiés'),
+('children storages', 'Children Storages', 'Sous-entreposages');
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Create a report to list all linked diagnosis (primary, secondary, recurrence, etc) from 1 diagnosis  #2688
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+INSERT INTO `datamart_reports` (`id`, `name`, `description`, `form_alias_for_search`, `form_alias_for_results`, `form_type_for_results`, `function`, `flag_active`, associated_datamart_structure_id) VALUES
+(null, 'list all related diagnosis', 'list all related diagnosis from a list of diagnosis or participants', 'report_list_all_related_diagnosis_criteria_and_result', 'report_list_all_related_diagnosis_criteria_and_result', 'index', 'getAllRelatedDiagnosis', 1, (SELECT id FROM datamart_structures WHERE model = 'DiagnosisMaster'));
+INSERT INTO `datamart_structure_functions` (`id`, `datamart_structure_id`, `label`, `link`, `flag_active`, `ref_single_fct_link`) VALUES
+(null, (SELECT id FROM datamart_structures WHERE model = 'DiagnosisMaster'), 'list all related diagnosis', (SELECT CONCAT('/Datamart/Reports/manageReport/',id) FROM datamart_reports WHERE name = 'list all related diagnosis'), 1, ''),
+(null, (SELECT id FROM datamart_structures WHERE model = 'Participant'), 'list all related diagnosis', (SELECT CONCAT('/Datamart/Reports/manageReport/',id) FROM datamart_reports WHERE name = 'list all related diagnosis'), 1, '');
+
+INSERT INTO structures(`alias`) VALUES ('report_list_all_related_diagnosis_criteria_and_result');
+INSERT INTO structure_formats(`structure_id`, `structure_field_id`, `display_column`, `display_order`, `language_heading`, `flag_override_label`, `language_label`, `flag_override_tag`, `language_tag`, `flag_override_help`, `language_help`, `flag_override_type`, `type`, `flag_override_setting`, `setting`, `flag_override_default`, `default`, `flag_add`, `flag_add_readonly`, `flag_edit`, `flag_edit_readonly`, `flag_search`, `flag_search_readonly`, `flag_addgrid`, `flag_addgrid_readonly`, `flag_editgrid`, `flag_editgrid_readonly`, `flag_batchedit`, `flag_batchedit_readonly`, `flag_index`, `flag_detail`, `flag_summary`, `flag_float`) VALUES 
+((SELECT id FROM structures WHERE alias='report_list_all_related_diagnosis_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='DiagnosisMaster' AND `tablename`='diagnosis_masters' AND `field`='dx_date' AND `type`='date' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='help_dx date' AND `language_label`='dx_date' AND `language_tag`=''), '0', '13', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_list_all_related_diagnosis_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='DiagnosisControl' AND `tablename`='diagnosis_controls' AND `field`='controls_type' AND `type`='select' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='diagnosis_type')  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='' AND `language_label`='diagnosis control type' AND `language_tag`=''), '0', '12', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='report_list_all_related_diagnosis_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='DiagnosisControl' AND `tablename`='diagnosis_controls' AND `field`='category' AND `type`='select' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='diagnosis_category')  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='' AND `language_label`='category' AND `language_tag`=''), '0', '11', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0');
+INSERT INTO structure_formats(`structure_id`, `structure_field_id`, `display_column`, `display_order`, `language_heading`, `flag_override_label`, `language_label`, `flag_override_tag`, `language_tag`, `flag_override_help`, `language_help`, `flag_override_type`, `type`, `flag_override_setting`, `setting`, `flag_override_default`, `default`, `flag_add`, `flag_add_readonly`, `flag_edit`, `flag_edit_readonly`, `flag_search`, `flag_search_readonly`, `flag_addgrid`, `flag_addgrid_readonly`, `flag_editgrid`, `flag_editgrid_readonly`, `flag_batchedit`, `flag_batchedit_readonly`, `flag_index`, `flag_detail`, `flag_summary`, `flag_float`) VALUES 
+((SELECT id FROM structures WHERE alias='report_list_all_related_diagnosis_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='Participant' AND `tablename`='participants' AND `field`='participant_identifier' AND `type`='input' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='size=20' AND `default`='' AND `language_help`='help_participant identifier' AND `language_label`='participant identifier' AND `language_tag`=''), '0', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0');
+INSERT INTO structure_fields(`plugin`, `model`, `tablename`, `field`, `type`, `structure_value_domain`, `flag_confidential`, `setting`, `default`, `language_help`, `language_label`, `language_tag`) VALUES
+('ClinicalAnnotation', 'DiagnosisMaster', 'diagnosis_masters', 'primary_id', 'input',  NULL , '0', 'size=20', '', '', 'diagnosis relation system code', '');
+INSERT INTO structure_formats(`structure_id`, `structure_field_id`, `display_column`, `display_order`, `language_heading`, `flag_override_label`, `language_label`, `flag_override_tag`, `language_tag`, `flag_override_help`, `language_help`, `flag_override_type`, `type`, `flag_override_setting`, `setting`, `flag_override_default`, `default`, `flag_add`, `flag_add_readonly`, `flag_edit`, `flag_edit_readonly`, `flag_search`, `flag_search_readonly`, `flag_addgrid`, `flag_addgrid_readonly`, `flag_editgrid`, `flag_editgrid_readonly`, `flag_batchedit`, `flag_batchedit_readonly`, `flag_index`, `flag_detail`, `flag_summary`, `flag_float`) VALUES 
+((SELECT id FROM structures WHERE alias='report_list_all_related_diagnosis_criteria_and_result'), (SELECT id FROM structure_fields WHERE `model`='DiagnosisMaster' AND `tablename`='diagnosis_masters' AND `field`='primary_id' AND `type`='input' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='size=20' AND `default`='' AND `language_help`='' AND `language_label`='diagnosis relation system code' AND `language_tag`=''), '0', '20', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0');
+INSERT IGNORE INTO i18n (id,en,fr) VALUES 
+('more than 100 records have been selected - please redefine search criteria', 'More than 100 related have been defines as search criteria. Please redefine search criteria.', 'Plus de 100 données ont été définis comme critères de recherche. Veuillez redéfinir les critères de recherche.'),
+('list all related diagnosis', 'List all related diagnosis', 'Afficher tous les évenements de diagnostic connexes'),
+('list all related diagnosis from a list of diagnosis or participants', 'List all related diagnosis from a list of diagnosis or participants', 'Afficher tous les évenements de diagnostic connexes à partir d''une liste de diagnostics ou de participants');
+INSERT IGNORE INTO i18n (id,en,fr) VALUES 
+('diagnosis relation system code', 'Related Diagnosis Id (System Code)', 'Id d''évenements connexes (Système code)');
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Missing Translations & Sorted i18n.fr values starting with É #
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+REPLACE INTO i18n (id,en,fr) VALUES 
+('csf', 'CSF', 'LCR'),
+('csf cells', 'CSF Cells', 'Cellules de LCR'),
+('csf supernatant', 'CSF Supernatant', 'Surnageant de LCR'),
+('saliva', 'Saliva', 'Salive');
+
+INSERT IGNORE INTO i18n (id,en,fr) VALUES
+('data saved', 'Data Saved', 'Données Sauvegardées'),
+('generic',  'Generic', 'Générique'),
+('selected derivatives', 'Selected Derivatives', 'Dérivés sélectionnés'),
+('specimens', 'Specimens', 'Spécimens'),
+('recurrent', 'Recurrent', 'Récurrent'),
+('delivery department or door', 'DeliveryDepartment or Door', 'Service de livraison ou porte'),
+('delivery notes', 'Delivery Notes', 'Notes de livraison'),
+('delivery phone #', 'Delivery Phone #', 'Téléphone pour livraison'),
+('display name', 'Display Name', 'Afficher le nom'),
+('hospital number', 'Hospital Number', 'Numéros hospitalier'),
+('number of values', 'Number of Values', 'Nombre de valeurs');
+
+REPLACE INTO i18n (id,en,fr) VALUES
+('sample', 'Sample', 'Echantillon'),
+('samples', 'Samples', 'Echantillons'); -- For databrowser options sort issue
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Display study in Uses/Events #2773
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+INSERT INTO structure_fields(`plugin`, `model`, `tablename`, `field`, `type`, `structure_value_domain`, `flag_confidential`, `setting`, `default`, `language_help`, `language_label`, `language_tag`) VALUES
+('InventoryManagement', 'ViewAliquotUse', 'view_aliquot_uses', 'study_summary_id', 'select', (SELECT id FROM structure_value_domains WHERE domain_name='study_list') , '0', '', '', '', 'study / project', '');
+INSERT INTO structure_formats(`structure_id`, `structure_field_id`, `display_column`, `display_order`, `language_heading`, `margin`, `flag_override_label`, `language_label`, `flag_override_tag`, `language_tag`, `flag_override_help`, `language_help`, `flag_override_type`, `type`, `flag_override_setting`, `setting`, `flag_override_default`, `default`, `flag_add`, `flag_add_readonly`, `flag_edit`, `flag_edit_readonly`, `flag_search`, `flag_search_readonly`, `flag_addgrid`, `flag_addgrid_readonly`, `flag_editgrid`, `flag_editgrid_readonly`, `flag_batchedit`, `flag_batchedit_readonly`, `flag_index`, `flag_detail`, `flag_summary`, `flag_float`) VALUES 
+((SELECT id FROM structures WHERE alias='viewaliquotuses'), (SELECT id FROM structure_fields WHERE `model`='ViewAliquotUse' AND `tablename`='view_aliquot_uses' AND `field`='study_summary_id' AND `type`='select' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='study_list')  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='' AND `language_label`='study / project' AND `language_tag`=''), '0', '2', '', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0');
+INSERT INTO structure_value_domains (domain_name, source) VALUES ('study_list_for_view', 'Study.StudySummary::getStudyPermissibleValuesForView');
+UPDATE structure_fields SET  `structure_value_domain`=(SELECT id FROM structure_value_domains WHERE domain_name='study_list_for_view')  WHERE model='ViewAliquotUse' AND tablename='view_aliquot_uses' AND field='study_summary_id' AND `type`='select';
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Use self::$display_limit in trunk reports.
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+INSERT IGNORE INTO i18n (id,en,fr) 
+VALUES 
+('the report contains too many results - please redefine search criteria', 'The report contains too many results. Please redefine search criteria.', 'Le rapport contient trop de résultats. Veuillez redéfinir les critères de recherche.');
+UPDATE structure_fields SET field = 'BR_Nbr' WHERE field = '#BR' AND model = '0';
+UPDATE structure_fields SET field = 'PR_Nbr' WHERE field = '#PR' AND model = '0';
+UPDATE misc_identifier_controls SET misc_identifier_name = 'BR_Nbr' WHERE misc_identifier_name = '#BR';
+UPDATE misc_identifier_controls SET misc_identifier_name = 'PR_Nbr' WHERE misc_identifier_name = '#PR';
+
+UPDATE structure_formats SET `display_column`='1' WHERE structure_id=(SELECT id FROM structures WHERE alias='view_sample_joined_to_collection') AND structure_field_id=(SELECT id FROM structure_fields WHERE `model`='ViewSample' AND `tablename`='' AND `field`='sample_code' AND `structure_value_domain` IS NULL AND `flag_confidential`='0');
+
+DELETE FROM structure_formats WHERE structure_id=(SELECT id FROM structures WHERE alias='storage_controls') AND structure_field_id=(SELECT id FROM structure_fields WHERE `public_identifier`='' AND `plugin`='StorageLayout' AND `model`='FunctionManagement' AND `tablename`='' AND `field`='check_white_space' AND `language_label`='check white space' AND `language_tag`='' AND `type`='checkbox' AND `setting`='' AND `default`='' AND `structure_value_domain`=(SELECT id FROM structure_value_domains WHERE domain_name='yes_no_checkbox') AND `language_help`='' AND `validation_control`='open' AND `value_domain_control`='open' AND `field_control`='open' AND `flag_confidential`='0');
+DELETE FROM structure_formats WHERE structure_id=(SELECT id FROM structures WHERE alias='storage_control_2d') AND structure_field_id=(SELECT id FROM structure_fields WHERE `public_identifier`='' AND `plugin`='StorageLayout' AND `model`='FunctionManagement' AND `tablename`='' AND `field`='check_white_space' AND `language_label`='check white space' AND `language_tag`='' AND `type`='checkbox' AND `setting`='' AND `default`='' AND `structure_value_domain`=(SELECT id FROM structure_value_domains WHERE domain_name='yes_no_checkbox') AND `language_help`='' AND `validation_control`='open' AND `value_domain_control`='open' AND `field_control`='open' AND `flag_confidential`='0');
+DELETE FROM structure_formats WHERE structure_id=(SELECT id FROM structures WHERE alias='storage_control_1d') AND structure_field_id=(SELECT id FROM structure_fields WHERE `public_identifier`='' AND `plugin`='StorageLayout' AND `model`='FunctionManagement' AND `tablename`='' AND `field`='check_white_space' AND `language_label`='check white space' AND `language_tag`='' AND `type`='checkbox' AND `setting`='' AND `default`='' AND `structure_value_domain`=(SELECT id FROM structure_value_domains WHERE domain_name='yes_no_checkbox') AND `language_help`='' AND `validation_control`='open' AND `value_domain_control`='open' AND `field_control`='open' AND `flag_confidential`='0');
+DELETE FROM structure_formats WHERE structure_id=(SELECT id FROM structures WHERE alias='storage_control_tma') AND structure_field_id=(SELECT id FROM structure_fields WHERE `public_identifier`='' AND `plugin`='StorageLayout' AND `model`='FunctionManagement' AND `tablename`='' AND `field`='check_white_space' AND `language_label`='check white space' AND `language_tag`='' AND `type`='checkbox' AND `setting`='' AND `default`='' AND `structure_value_domain`=(SELECT id FROM structure_value_domains WHERE domain_name='yes_no_checkbox') AND `language_help`='' AND `validation_control`='open' AND `value_domain_control`='open' AND `field_control`='open' AND `flag_confidential`='0');
+DELETE FROM structure_validations WHERE structure_field_id IN (SELECT id FROM structure_fields WHERE (`public_identifier`='' AND `plugin`='StorageLayout' AND `model`='FunctionManagement' AND `tablename`='' AND `field`='check_white_space' AND `language_label`='check white space' AND `language_tag`='' AND `type`='checkbox' AND `setting`='' AND `default`='' AND `structure_value_domain`=(SELECT id FROM structure_value_domains WHERE domain_name='yes_no_checkbox') AND `language_help`='' AND `validation_control`='open' AND `value_domain_control`='open' AND `field_control`='open' AND `flag_confidential`='0'));
+DELETE FROM structure_fields WHERE (`public_identifier`='' AND `plugin`='StorageLayout' AND `model`='FunctionManagement' AND `tablename`='' AND `field`='check_white_space' AND `language_label`='check white space' AND `language_tag`='' AND `type`='checkbox' AND `setting`='' AND `default`='' AND `structure_value_domain`=(SELECT id FROM structure_value_domains WHERE domain_name='yes_no_checkbox') AND `language_help`='' AND `validation_control`='open' AND `value_domain_control`='open' AND `field_control`='open' AND `flag_confidential`='0');
+DELETE from structure_formats WHERE structure_id=(SELECT id FROM structures WHERE alias='storage_w_spaces');
+DELETE FROM structures WHERE alias='storage_w_spaces';
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- EventMaster.listall: use either Master from or detailed form #2802
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+ALTER TABLE event_controls ADD COLUMN use_detail_form_for_index TINYINT(1) NOT NULL DEFAULT '0';
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Add missing translation linked to permissions rebuild
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+INSERT INTO i18n (id,en,fr) VALUES 
+('rebuilt lft rght for datamart_browsing_results','Rebuilt lft & rght for datamart_browsing_results', 'Les valeurs lft & rght de datamart_browsing_results ont été regénérées'),
+('language files have been rebuilt', 'Language files have been rebuilt', 'Fichiers de traductions ont été regénérés'),
+('views have been rebuilt', 'Views have been rebuilt', 'Les vues ont été regénérées'),
+('cache has been cleared', 'Cache has been cleared', 'Les fichiers temporaires ont été supprimés');
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Add message to define structure_permissible_values_custom_controls.category
+-- Plus add aditional category
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+ALTER TABLE structure_permissible_values_custom_controls MODIFY category varchar(50) NOT NULL DEFAULT 'undefined';
+UPDATE structure_permissible_values_custom_controls SET category = 'undefined' WHERE category = '';
+
+SELECT '----------------------------------------------------------------------------------------------------------' AS 'structure_permissible_values_custom_controls category to set'
+UNION ALL
+SELECT name AS 'structure_permissible_values_custom_controls category to set' FROM structure_permissible_values_custom_controls WHERE category = 'undefined'
+UNION ALL
+SELECT '----------------------------------------------------------------------------------------------------------' AS 'structure_permissible_values_custom_controls category to set'
+UNION ALL
+SELECT '' AS 'structure_permissible_values_custom_controls category to set';
+
+UPDATE structure_permissible_values_custom_controls SET category = 'clinical - consent' WHERE category = 'consent';
+UPDATE structure_permissible_values_custom_controls SET category = 'inventory - quality control' WHERE category = 'quality control';
+UPDATE structure_permissible_values_custom_controls SET category = 'clinical - treatment' WHERE category = 'treatment';
+UPDATE structure_permissible_values_custom_controls SET category = 'clinical - diagnosis' WHERE category = 'diagnosis';
+UPDATE structure_permissible_values_custom_controls SET category = 'clinical - annotation' WHERE category = 'annotation';
+UPDATE structure_permissible_values_custom_controls SET category = 'clinical - contact' WHERE category = 'contact';
+UPDATE structure_permissible_values_custom_controls SET category = 'inventory - specimen review' WHERE category = 'specimen review';
+UPDATE structure_permissible_values_custom_controls SET category = 'clinical - gynaecologic' WHERE category = 'gynaecologic';		
+INSERT INTO structure_permissible_values (value, language_alias) VALUES("clinical - consent", "clinical - consent");
+INSERT INTO structure_value_domains_permissible_values (structure_value_domain_id, structure_permissible_value_id, display_order, flag_active) VALUES ((SELECT id FROM structure_value_domains WHERE domain_name="permissible_values_custom_categories"), (SELECT id FROM structure_permissible_values WHERE value="clinical - consent" AND language_alias="clinical - consent"), "0", "1");
+INSERT INTO structure_permissible_values (value, language_alias) VALUES("inventory - quality control", "inventory - quality control");
+INSERT INTO structure_value_domains_permissible_values (structure_value_domain_id, structure_permissible_value_id, display_order, flag_active) VALUES ((SELECT id FROM structure_value_domains WHERE domain_name="permissible_values_custom_categories"), (SELECT id FROM structure_permissible_values WHERE value="inventory - quality control" AND language_alias="inventory - quality control"), "0", "1");
+INSERT INTO structure_permissible_values (value, language_alias) VALUES("clinical - treatment", "clinical - treatment");
+INSERT INTO structure_value_domains_permissible_values (structure_value_domain_id, structure_permissible_value_id, display_order, flag_active) VALUES ((SELECT id FROM structure_value_domains WHERE domain_name="permissible_values_custom_categories"), (SELECT id FROM structure_permissible_values WHERE value="clinical - treatment" AND language_alias="clinical - treatment"), "0", "1");
+INSERT INTO structure_permissible_values (value, language_alias) VALUES("clinical - diagnosis", "clinical - diagnosis");
+INSERT INTO structure_value_domains_permissible_values (structure_value_domain_id, structure_permissible_value_id, display_order, flag_active) VALUES ((SELECT id FROM structure_value_domains WHERE domain_name="permissible_values_custom_categories"), (SELECT id FROM structure_permissible_values WHERE value="clinical - diagnosis" AND language_alias="clinical - diagnosis"), "0", "1");
+INSERT INTO structure_permissible_values (value, language_alias) VALUES("clinical - annotation", "clinical - annotation");
+INSERT INTO structure_value_domains_permissible_values (structure_value_domain_id, structure_permissible_value_id, display_order, flag_active) VALUES ((SELECT id FROM structure_value_domains WHERE domain_name="permissible_values_custom_categories"), (SELECT id FROM structure_permissible_values WHERE value="clinical - annotation" AND language_alias="clinical - annotation"), "0", "1");
+INSERT INTO structure_permissible_values (value, language_alias) VALUES("clinical - contact", "clinical - contact");
+INSERT INTO structure_value_domains_permissible_values (structure_value_domain_id, structure_permissible_value_id, display_order, flag_active) VALUES ((SELECT id FROM structure_value_domains WHERE domain_name="permissible_values_custom_categories"), (SELECT id FROM structure_permissible_values WHERE value="clinical - contact" AND language_alias="clinical - contact"), "0", "1");
+INSERT INTO structure_permissible_values (value, language_alias) VALUES("clinical - gynaecologic", "clinical - gynaecologic");
+INSERT INTO structure_value_domains_permissible_values (structure_value_domain_id, structure_permissible_value_id, display_order, flag_active) VALUES ((SELECT id FROM structure_value_domains WHERE domain_name="permissible_values_custom_categories"), (SELECT id FROM structure_permissible_values WHERE value="clinical - gynaecologic" AND language_alias="clinical - gynaecologic"), "0", "1");
+INSERT INTO structure_permissible_values (value, language_alias) VALUES("undefined", "undefined");
+INSERT INTO structure_value_domains_permissible_values (structure_value_domain_id, structure_permissible_value_id, display_order, flag_active) VALUES ((SELECT id FROM structure_value_domains WHERE domain_name="permissible_values_custom_categories"), (SELECT id FROM structure_permissible_values WHERE value="undefined" AND language_alias="undefined"), "", "1");
+DELETE svdpv FROM structure_value_domains_permissible_values AS svdpv INNER JOIN structure_permissible_values AS spv ON svdpv.structure_permissible_value_id=spv.id WHERE spv.value="quality control" AND spv.language_alias="quality control";
+DELETE svdpv FROM structure_value_domains_permissible_values AS svdpv INNER JOIN structure_permissible_values AS spv ON svdpv.structure_permissible_value_id=spv.id WHERE spv.value="gynaecologic" AND spv.language_alias="gynaecologic";
+DELETE svdpv FROM structure_value_domains_permissible_values AS svdpv INNER JOIN structure_permissible_values AS spv ON svdpv.structure_permissible_value_id=spv.id WHERE spv.value="consent" AND spv.language_alias="consent";
+DELETE svdpv FROM structure_value_domains_permissible_values AS svdpv INNER JOIN structure_permissible_values AS spv ON svdpv.structure_permissible_value_id=spv.id WHERE spv.value="treatment" AND spv.language_alias="treatment";
+DELETE svdpv FROM structure_value_domains_permissible_values AS svdpv INNER JOIN structure_permissible_values AS spv ON svdpv.structure_permissible_value_id=spv.id WHERE spv.value="diagnosis" AND spv.language_alias="diagnosis";
+DELETE svdpv FROM structure_value_domains_permissible_values AS svdpv INNER JOIN structure_permissible_values AS spv ON svdpv.structure_permissible_value_id=spv.id WHERE spv.value="annotation" AND spv.language_alias="annotation";
+DELETE svdpv FROM structure_value_domains_permissible_values AS svdpv INNER JOIN structure_permissible_values AS spv ON svdpv.structure_permissible_value_id=spv.id WHERE spv.value="contact" AND spv.language_alias="contact";
+DELETE FROM structure_permissible_values WHERE value="quality control" AND language_alias="quality control";
+DELETE FROM structure_permissible_values WHERE value="consent" AND language_alias="consent";
+DELETE FROM structure_permissible_values WHERE value="treatment" AND language_alias="treatment";
+DELETE FROM structure_permissible_values WHERE value="diagnosis" AND language_alias="diagnosis";
+DELETE FROM structure_permissible_values WHERE value="annotation" AND language_alias="annotation";
+DELETE FROM structure_permissible_values WHERE value="contact" AND language_alias="contact";
+UPDATE structure_permissible_values_custom_controls SET category = 'clinical - consent' WHERE category = 'consent';
+UPDATE structure_permissible_values_custom_controls SET category = 'inventory - quality control' WHERE category = 'quality control';
+UPDATE structure_permissible_values_custom_controls SET category = 'clinical - treatment' WHERE category = 'treatment';
+UPDATE structure_permissible_values_custom_controls SET category = 'clinical - diagnosis' WHERE category = 'diagnosis';
+UPDATE structure_permissible_values_custom_controls SET category = 'clinical - annotation' WHERE category = 'annotation';
+UPDATE structure_permissible_values_custom_controls SET category = 'clinical - contact' WHERE category = 'contact';
+UPDATE structure_permissible_values_custom_controls SET category = 'inventory - specimen review' WHERE category = 'specimen review';
+UPDATE structure_permissible_values_custom_controls SET category = 'clinical - gynaecologic' WHERE category = 'gynaecologic';	
+INSERT INTO i18n (id,en,fr) 
+VALUES
+('clinical - annotation', 'Clinical - Annotation','Clinique - Annotation'),
+('clinical - consent', 'Clinical - Consent','Clinique - Consentement'),
+('clinical - contact', 'Clinical - Contact','Clinique - Contact'),
+('clinical - diagnosis', 'Clinical - Diagnosis','Clinique - Diagnostic'),
+('clinical - gynaecologic', 'Clinical - Gynaecologic','Clinique - Gynécologique'),
+('clinical - treatment', 'Clinical - Treatment','Clinique - Traitement'),
+('inventory - quality control', 'Inventory - Quality Control', 'Inventaire - Contrôle de qualité'),
+('inventory - specimen review', 'Inventory - Path Review', 'Inventaire - Rapport d''histologie');
+INSERT INTO structure_permissible_values (value, language_alias) VALUES("clinical - family history", "clinical - family history");
+INSERT INTO structure_value_domains_permissible_values (structure_value_domain_id, structure_permissible_value_id, display_order, flag_active) VALUES ((SELECT id FROM structure_value_domains WHERE domain_name="permissible_values_custom_categories"), (SELECT id FROM structure_permissible_values WHERE value="clinical - family history" AND language_alias="clinical - family history"), "", "1");
+INSERT INTO structure_permissible_values (value, language_alias) VALUES("clinical - reproductive history", "clinical - reproductive history");
+INSERT INTO structure_value_domains_permissible_values (structure_value_domain_id, structure_permissible_value_id, display_order, flag_active) VALUES ((SELECT id FROM structure_value_domains WHERE domain_name="permissible_values_custom_categories"), (SELECT id FROM structure_permissible_values WHERE value="clinical - reproductive history" AND language_alias="clinical - reproductive history"), "", "1");
+INSERT INTO structure_permissible_values (value, language_alias) VALUES("inventory - specimen review", "inventory - specimen review");
+INSERT INTO structure_value_domains_permissible_values (structure_value_domain_id, structure_permissible_value_id, display_order, flag_active) VALUES ((SELECT id FROM structure_value_domains WHERE domain_name="permissible_values_custom_categories"), (SELECT id FROM structure_permissible_values WHERE value="inventory - specimen review" AND language_alias="inventory - specimen review"), "", "1");
+INSERT IGNORE INTO i18n (id,en,fr) 
+VALUES
+('clinical - family history', 'Clinical - Family History','Clinique - Antécédents Familiaux'),
+('clinical - reproductive history', 'Clinical - Reproductive History','Clinique - Gynécologie'),
+('inventory - specimen review', 'Inventory - Path Review', 'Inventaire - Rapport d''histologie');
+UPDATE structure_permissible_values_custom_controls SET name = 'orders institutions' WHERE name = 'orders_institution';
+UPDATE structure_permissible_values_custom_controls SET name = 'orders contacts' WHERE name = 'orders_contact';

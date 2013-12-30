@@ -156,7 +156,7 @@ class TreatmentMastersController extends ClinicalAnnotationAppController {
 		$this->set('atim_menu', $this->Menus->get('/ClinicalAnnotation/TreatmentMasters/listall/%%Participant.id%%'));
 		
 		// Set trt header
-		$this->set('tx_header', __($tx_control_data['TreatmentControl']['tx_method']) . ' - ' . __($tx_control_data['TreatmentControl']['disease_site']));
+		$this->set('tx_header', __($tx_control_data['TreatmentControl']['tx_method']) . (empty($tx_control_data['TreatmentControl']['disease_site'])? '' : ' - ' . __($tx_control_data['TreatmentControl']['disease_site'])));
 		
 		// set DIAGANOSES radio list form
 		$this->Structures->set('view_diagnosis', 'diagnosis_structure');
@@ -220,10 +220,10 @@ class TreatmentMastersController extends ClinicalAnnotationAppController {
 			if( $this->TreatmentMaster->atimDelete( $tx_master_id ) ) {
 				$this->atimFlash( 'your data has been deleted', '/ClinicalAnnotation/TreatmentMasters/listall/'.$participant_id );
 			} else {
-				$this->flash( 'error deleting data - contact administrator', '/ClinicalAnnotation/TreatmentMasters/listall/'.$participant_id );
+				$this->flash(__('error deleting data - contact administrator'), '/ClinicalAnnotation/TreatmentMasters/listall/'.$participant_id );
 			}
 		} else {
-			$this->flash($arr_allow_deletion['msg'], '/ClinicalAnnotation/TreatmentMasters/detail/'.$participant_id.'/'.$tx_master_id);
+			$this->flash(__($arr_allow_deletion['msg']), '/ClinicalAnnotation/TreatmentMasters/detail/'.$participant_id.'/'.$tx_master_id);
 		}
 	}
 }

@@ -10,7 +10,8 @@
 	
 	// ************** 1- COLLECTION **************
 	$structure_settings = array(
-		'actions'		=> false
+		'actions'	=> false,
+		'header' 	=> array('title' => __('collection'), 'description' => null)
 	);
 	
 	$final_atim_structure = $empty_structure;
@@ -18,7 +19,7 @@
 		'type'		=> 'detail', 
 		'data'		=> array(), 
 		'settings'	=> $structure_settings,
-		'extras'	=> $this->Structures->ajaxIndex('InventoryManagement/Collections/detail/'.$collection_data['id'])
+		'extras'	=> $this->Structures->ajaxIndex('InventoryManagement/Collections/detail/'.$collection_data['id'].'/1')
 	);
 
 	// CUSTOM CODE
@@ -65,7 +66,7 @@
 
 	// ************** 4 - Tx **************
 	$final_options['settings']['header'] = array('title' => __('treatment'), 'description' => null);
-	if(!is_null($treatment_control_data)) $final_options['settings']['header']['description'] = __($treatment_control_data['tx_method']). ' - '.__($treatment_control_data['disease_site']);	
+	if(!is_null($treatment_control_data)) $final_options['settings']['header']['description'] = __($treatment_control_data['tx_method']). (empty($treatment_control_data['disease_site'])? '' : ' - '.__($treatment_control_data['disease_site']));	
 	$final_options['extras'] = $collection_data['treatment_master_id'] ? $this->Structures->ajaxIndex('ClinicalAnnotation/TreatmentMasters/detail/'.$collection_data['participant_id'].'/'.$collection_data['treatment_master_id']) : $no_data_available;
 	
 	$display_next_sub_form = true;
@@ -79,7 +80,7 @@
 
 	// ************** 5 - Event **************
 	$final_options['settings']['header'] = array('title' => __('annotation'), 'description' => null);
-	if(!is_null($event_control_data)) $final_options['settings']['header']['description'] = __($event_control_data['event_group']). ' - '.__($event_control_data['event_type']). ' - '.__($event_control_data['disease_site']);	
+	if(!is_null($event_control_data)) $final_options['settings']['header']['description'] = __($event_control_data['event_group']). ' - '.__($event_control_data['event_type']). (empty($event_control_data['disease_site'])? '' : ' - '.__($event_control_data['disease_site']));	
 	$final_options['settings']['actions'] = true;
 	$final_options['extras'] = $collection_data['event_master_id'] ? $this->Structures->ajaxIndex('ClinicalAnnotation/EventMasters/detail/'.$collection_data['participant_id'].'/'.$collection_data['event_master_id'].'/1/') : $no_data_available;
 	
