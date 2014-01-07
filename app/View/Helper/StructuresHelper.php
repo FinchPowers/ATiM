@@ -1044,7 +1044,7 @@ class StructuresHelper extends Helper {
 				// start table...
 				echo '
 					<td class="this_column_',$structure_count,' total_columns_',count($structure_index),'">
-						<table class="columns index" cellspacing="0">
+						<table class="columns index" cellspacing="0" style="position:relative;">
 				';
 				$remove_line_ctrl = ($options['type'] == 'addgrid' || $options['type'] == 'editgrid') && $options['settings']['del_fields'];
 				$add_line_ctrl = ($options['type'] == 'addgrid' || $options['type'] == 'editgrid') && $options['settings']['add_fields'];
