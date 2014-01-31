@@ -1,6 +1,3 @@
-INSERT INTO `versions` (version_number, date_installed, trunk_build_number, branch_build_number) 
-VALUES('2.6.0', NOW(),'to define','to define');
-
 REPLACE INTO i18n (id,en,fr) VALUES
 ('children', 'Children', 'Enfants'),
 ('results', 'Results', 'Résultats');
@@ -1925,5 +1922,134 @@ INSERT INTO structure_formats(`structure_id`, `structure_field_id`, `display_col
 INSERT IGNORE INTO i18n (id,en,fr) VALUES ('cores','Cores','Cores'), ('there are too many main storages for display', 'There are too many ''main'' storages for display', 'Il existe trop d''entreposages principaux pour l''affichage');
 UPDATE structure_fields SET model = 'Block', field = 'short_label' WHERE field = 'tma_block_identification';
 
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- add missing translation
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+INSERT IGNORE INTO i18n (id,en,fr) VALUES ('this is not a time','Data entry is not a time','La donnée saisie n''est pas un temps');
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Issue#2912: custom drop down list pagination 
+-- Add  custom drop down list items counter
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+ALTER TABLE structure_permissible_values_custom_controls 
+  ADD COLUMN  values_used_as_input_counter INT(7) DEFAULT '0',
+  ADD COLUMN  values_counter INT(7) DEFAULT '0';
+UPDATE structure_permissible_values_custom_controls ctrl
+INNER JOIN (SELECT control_id, count(*) as counter FROM structure_permissible_values_customs WHERE deleted != 1 GROUP BY control_id) values_customs ON ctrl.id = values_customs.control_id
+INNER JOIN (SELECT control_id, count(*) as counter FROM structure_permissible_values_customs WHERE deleted != 1  AND use_as_input = 1 GROUP BY control_id) values_customs_used_as_input ON ctrl.id = values_customs_used_as_input.control_id
+SET ctrl.values_counter = values_customs.counter,  ctrl.values_used_as_input_counter = values_customs_used_as_input.counter;
+INSERT INTO structure_fields(`plugin`, `model`, `tablename`, `field`, `type`, `structure_value_domain`, `flag_confidential`, `setting`, `default`, `language_help`, `language_label`, `language_tag`) VALUES
+('Administrate', 'StructurePermissibleValuesCustomControl', 'structure_permissible_values_custom_controls', 'values_counter', 'input',  NULL , '0', 'size=5', '', 'NULL', 'number of values', ''), 
+('Administrate', 'StructurePermissibleValuesCustomControl', 'structure_permissible_values_custom_controls', 'values_used_as_input_counter', 'input',  NULL , '0', 'size=5', '', '', 'number of values used as input', '');
+INSERT INTO structure_formats(`structure_id`, `structure_field_id`, `display_column`, `display_order`, `language_heading`, `margin`, `flag_override_label`, `language_label`, `flag_override_tag`, `language_tag`, `flag_override_help`, `language_help`, `flag_override_type`, `type`, `flag_override_setting`, `setting`, `flag_override_default`, `default`, `flag_add`, `flag_add_readonly`, `flag_edit`, `flag_edit_readonly`, `flag_search`, `flag_search_readonly`, `flag_addgrid`, `flag_addgrid_readonly`, `flag_editgrid`, `flag_editgrid_readonly`, `flag_batchedit`, `flag_batchedit_readonly`, `flag_index`, `flag_detail`, `flag_summary`, `flag_float`) VALUES 
+((SELECT id FROM structures WHERE alias='administrate_dropdowns'), (SELECT id FROM structure_fields WHERE `model`='StructurePermissibleValuesCustomControl' AND `tablename`='structure_permissible_values_custom_controls' AND `field`='values_counter' AND `type`='input' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='size=5' AND `default`='' AND `language_help`='NULL' AND `language_label`='number of values' AND `language_tag`=''), '1', '2', '', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0'), 
+((SELECT id FROM structures WHERE alias='administrate_dropdowns'), (SELECT id FROM structure_fields WHERE `model`='StructurePermissibleValuesCustomControl' AND `tablename`='structure_permissible_values_custom_controls' AND `field`='values_used_as_input_counter' AND `type`='input' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='size=5' AND `default`='' AND `language_help`='' AND `language_label`='number of values used as input' AND `language_tag`=''), '1', '3', '', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0');
+DELETE FROM structure_formats WHERE structure_id=(SELECT id FROM structures WHERE alias='administrate_dropdowns') AND structure_field_id=(SELECT id FROM structure_fields WHERE `public_identifier`='' AND `plugin`='Administrate' AND `model`='Generated' AND `tablename`='' AND `field`='custom_permissible_values_counter' AND `language_label`='number of values' AND `language_tag`='' AND `type`='input' AND `setting`='size=5' AND `default`='' AND `structure_value_domain` IS NULL  AND `language_help`='' AND `validation_control`='open' AND `value_domain_control`='open' AND `field_control`='open' AND `flag_confidential`='0');
+DELETE FROM structure_validations WHERE structure_field_id IN (SELECT id FROM structure_fields WHERE (`public_identifier`='' AND `plugin`='Administrate' AND `model`='Generated' AND `tablename`='' AND `field`='custom_permissible_values_counter' AND `language_label`='number of values' AND `language_tag`='' AND `type`='input' AND `setting`='size=5' AND `default`='' AND `structure_value_domain` IS NULL  AND `language_help`='' AND `validation_control`='open' AND `value_domain_control`='open' AND `field_control`='open' AND `flag_confidential`='0'));
+DELETE FROM structure_fields WHERE (`public_identifier`='' AND `plugin`='Administrate' AND `model`='Generated' AND `tablename`='' AND `field`='custom_permissible_values_counter' AND `language_label`='number of values' AND `language_tag`='' AND `type`='input' AND `setting`='size=5' AND `default`='' AND `structure_value_domain` IS NULL  AND `language_help`='' AND `validation_control`='open' AND `value_domain_control`='open' AND `field_control`='open' AND `flag_confidential`='0');
+INSERT INTO i18n (id,en,fr) VALUES ('number of values used as input', 'Number of values used as input', 'Nombre de valeurs utilisées comme entrée');
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Issue #2943: Login Error Management : New rules 
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+INSERT IGNORE INTO i18n (id,en,fr) 
+VALUES 
+('your connection has been temporarily disabled','Your connection has been temporarily disabled','votre connexion a été temporairement désactivée'),
+('login failed. that username has been disabled', 'Login failed. That username has been disabled.','L''ouverture de session a échoué. L''utilisateur a été désactivé');
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Issue #2943: Login Error Management : New rules 
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+INSERT INTO i18n (id,en,fr) 
+VALUES 
+('Login failed. Invalid username or password or disabled user.', 'Login failed. Invalid username/password or disabled user.', 'L''ouverture de session a échoué. Nom d''utilisateur/mot de passe invalide ou ustilisateur désactivé.');
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Issue #2944: Password creation: new rules 
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+INSERT IGNORE INTO i18n (id,en,fr) 
+VALUES
+('password should be different than username','Password should be different than username','Le mot de passe doit être différent du nom d''utilisateur'),
+('password should be different than the previous one','Password should be different than the previous one','Le mot de passe doit être différent du précédent');
+DELETE from structure_validations WHERE structure_field_id IN (SELECT id FROM structure_fields WHERE field in ('password','new_password'));
+INSERT INTO structure_validations(structure_field_id, rule, language_message) VALUES
+((SELECT id FROM structure_fields WHERE `model`='User' AND `field`='password'), 'notEmpty', 'password is required'),
+((SELECT id FROM structure_fields WHERE `model`='User' AND `field`='new_password'), 'notEmpty', 'password is required');
+INSERT IGNORE INTO i18n (id,en,fr) 
+VALUES
+('password_format_error_msg_3',
+'Passwords must have a minimal length of 8 characters and contains both uppercase letters, lowercase letters, numbers and special characters.',
+'Les mots de passe doivent avoir une longueur minimale de 8 caractères et être composés de lettres majuscules, de lettres minuscules, de chiffres et de caractères spéciaux.'),
+('password_format_error_msg_2',
+'Passwords must have a minimal length of 8 characters and contains both uppercase letters, lowercase letters and numbers.',
+'Les mots de passe doivent avoir une longueur minimale de 8 caractères et être composés de lettres majuscules, de lettres minuscules et de chiffres.'),
+('password_format_error_msg_1',
+'Passwords must have a minimal length of 8 characters and contains lowercase letters.',
+'Les mots de passe doivent avoir une longueur minimale de 8 caractères et être composés de lettres minuscules.');
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Issue #2945: Authentication credentials expiration 
+-- Change Valide UserName format message
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+ALTER TABLE users ADD COLUMN password_modified datetime DEFAULT NULL;
+INSERT INTO i18n (id,en,fr) VALUES (
+'your password has expired. please change your password for security reason.',
+'Your password has expired. Please change your password for security reason.', 
+'Votre mot de passe a expiré. Veuillez changer votre mot de passe pour des raisons de sécurité.');
+
+UPDATE structure_validations SET language_message = 'a valid username is required, between 5 to 15, and a mix of alphabetical and numeric characters only' WHERE language_message = 'A valid username is required, between 5 to 15, and a mix of alphabetical and numeric characters only.';
+INSERT INTO i18n (id,en,fr) 
+VALUES 
+('a valid username is required, between 5 to 15, and a mix of alphabetical and numeric characters only',
+'A valid username is required, between 5 to 15, and a mix of alphabetical and numeric characters only.',
+'Un nom d''utilisateur valide est requis composé de 5 à 15 caractères et un mélange de caractères alphabétiques et numériques uniquement.');
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Change structure_permissible_values_custom_controls.name with upperletters
+-- Issue #2756: Missing Translations 
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+UPDATE structure_permissible_values_custom_controls SET name = 'Aliquot Use and Event Types' WHERE name = 'aliquot use and event types';
+UPDATE structure_permissible_values_custom_controls SET name = 'Consent Form Versions' WHERE name = 'consent form versions';
+UPDATE structure_permissible_values_custom_controls SET name = 'Laboratory Sites' WHERE name = 'laboratory sites';
+UPDATE structure_permissible_values_custom_controls SET name = 'Laboratory Staff' WHERE name = 'laboratory staff';
+UPDATE structure_permissible_values_custom_controls SET name = 'Orders Contacts' WHERE name = 'orders contacts';
+UPDATE structure_permissible_values_custom_controls SET name = 'Orders Institutions' WHERE name = 'orders institutions';
+UPDATE structure_permissible_values_custom_controls SET name = 'Quality Control Tools' WHERE name = 'quality control tools';
+UPDATE structure_permissible_values_custom_controls SET name = 'SOP Versions' WHERE name = 'sop versions';
+UPDATE structure_permissible_values_custom_controls SET name = 'Specimen Collection Sites' WHERE name = 'specimen collection sites';
+UPDATE structure_permissible_values_custom_controls SET name = 'Specimen Supplier Departments' WHERE name = 'specimen supplier departments';
+UPDATE structure_permissible_values_custom_controls SET name = 'Storage Coordinate Titles' WHERE name = 'storage coordinate titles';
+UPDATE structure_permissible_values_custom_controls SET name = 'Storage Types' WHERE name = 'storage types';
+INSERT INTO i18n (id,en,fr) VALUES ('undefined','Undefined','Non défini');
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Username control
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+SELECT '----------------------------------------------------------------------------------------------------------' AS 'username too small - to change (nothing to do if empty)'
+UNION ALL 
+SELECT username AS 'username too small - to change (nothing to do if empty)' from users where LENGTH(username) < 5
+UNION ALL 
+SELECT '' AS 'username too small - to change (nothing to do if empty)';
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Disable addInternalUseToManyAliquots()
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+UPDATE datamart_structure_functions SET flag_active = 0 WHERE link LIKE '%addInternalUseToManyAliquots%';
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Versions table
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+INSERT INTO `versions` (version_number, date_installed, trunk_build_number, branch_build_number) 
+VALUES('2.6.0', NOW(),'5564','n/a');
 
 
