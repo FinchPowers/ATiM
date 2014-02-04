@@ -109,17 +109,14 @@ class ParticipantsController extends ClinicalAnnotationAppController {
 			}				
 			
 			if($submitted_data_validates) {
-			    $l = AppModel::acquireBatchViewsUpdateLock();
-			    $this->log("proceeding");
 				if ( $this->Participant->save($this->request->data) ) {
-					$this->log("saved");
+					
 					$hook_link = $this->hook('postsave_process');
 					if( $hook_link ) { 
 						require($hook_link); 
 					}
 					
 					$this->atimFlash(__('your data has been saved'), '/ClinicalAnnotation/Participants/profile/'.$this->Participant->getLastInsertID());
-					$this->log("over");
 				}
 			}
 		}
