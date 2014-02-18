@@ -59,6 +59,8 @@ class AppModel extends Model {
 	var $previous_model = null;
 	private static $locked_views_update = false;
 	private static $cached_views_update = array();
+	private static $cached_views_delete = array();
+	private static $cached_views_insert = array();
 	private static $cached_views_model = null; //some model, only provides accc
 	
 	const ACCURACY_REPLACE_STR = '%5$s(IF(%2$s = "c", %1$s, IF(%2$s = "d", CONCAT(SUBSTR(%1$s, 1, 7), %3$s), IF(%2$s = "m", CONCAT(SUBSTR(%1$s, 1, 4), %3$s), IF(%2$s = "y", CONCAT(SUBSTR(%1$s, 1, 4), %4$s), IF(%2$s = "h", CONCAT(SUBSTR(%1$s, 1, 10), %3$s), IF(%2$s = "i", CONCAT(SUBSTR(%1$s, 1, 13), %3$s), %1$s)))))))';
@@ -110,12 +112,16 @@ class AppModel extends Model {
 			AppController::addWarningMsg('saving unvalidated data ['.$this->name.']', true);
 		}
 	
-		if(!isset($data[$this->name]) || empty($data[$this->name])){
+		if((!isset($data[$this->name]) || empty($data[$this->name])) 
+		&& isset($this->Behaviors->MasterDetail->__settings[$this->name]['is_master_model']) 
+		&& $this->Behaviors->MasterDetail->__settings[$this->name]['is_master_model']
+		&& isset($data[$this->Behaviors->MasterDetail->__settings[$this->name]['detail_class']])) {
 		    //Eventum 2619: When there is no master data, details aren't saved
 		    //properly because cake core flushes them out.
 		    //NL Comment See notes on eventum $data[$this->name]['-'] = "foo";
-			if(isset($this->Behaviors->MasterDetail->__settings[$this->name]['is_master_model']) && $this->Behaviors->MasterDetail->__settings[$this->name]['is_master_model']) $data[$this->name]['-'] = "foo";
+			$data[$this->name]['-'] = "foo";
 		} 
+		
 		return parent::save($data, $validate, $fieldList);
 	}
 	
@@ -262,8 +268,19 @@ class AppModel extends Model {
 	    foreach($this->registered_models as $registered_model){
 	        //try to find the row
 	        $model = $registered_model['model'];
-	        $model->delete($registered_model['pkeys_for_deletion'], false);
-	        foreach(explode("UNION ALL", $model::$table_query) as $query_part){
+			if(self::$locked_views_update){
+				if(!isset(self::$cached_views_delete[$model->table])){
+					self::$cached_views_delete[$model->table] = array();
+				}
+				if(!isset(self::$cached_views_delete[$model->table][$model->primaryKey])){
+					self::$cached_views_delete[$model->table][$model->primaryKey] = array("pkeys_for_deletion" => array());
+				}
+				self::$cached_views_delete[$model->table][$model->primaryKey]["pkeys_for_deletion"] = array_merge(self::$cached_views_delete[$model->table][$model->primaryKey]["pkeys_for_deletion"], $registered_model['pkeys_for_deletion']);
+			}else{
+				$query = sprintf('DELETE FROM %s  WHERE %s IN (%s)', $model->table, $model->primaryKey, implode(',',$registered_model['pkeys_for_deletion']));	//To fix issue#2980: Edit Storage & View Update 
+				$this->tryCatchquery($query);
+			}
+			foreach(explode("UNION ALL", $model::$table_query) as $query_part){
 	            $ids = array();
 	            $base_model = null;
 	            for($i = count($registered_model['pkeys_to_check']) - 1; $i >= 0; -- $i){
@@ -283,9 +300,22 @@ class AppModel extends Model {
 	                }
 	            }
 	            if($ids){
-	                $table_query = str_replace('%%WHERE%%', 'AND '.$base_model.'.id IN('.implode(", ", $ids).')', $query_part);
-	                $query = sprintf('INSERT INTO %s (%s)', $model->table, $table_query);
-	                $this->tryCatchquery($query);
+	            	if(self::$locked_views_update){
+	            		if(!isset(self::$cached_views_insert[$model->table])){
+	            			self::$cached_views_insert[$model->table] = array();
+	            		}
+	            		if(!isset(self::$cached_views_insert[$model->table][$base_model])){
+	            			self::$cached_views_insert[$model->table][$base_model] = array();
+	            		}
+	            		if(!isset(self::$cached_views_insert[$model->table][$base_model][$query_part])){
+	            			self::$cached_views_insert[$model->table][$base_model][$query_part] = array("ids" => array());
+	            		}
+	            		self::$cached_views_insert[$model->table][$base_model][$query_part]["ids"] = array_merge(self::$cached_views_insert[$model->table][$base_model][$query_part]["ids"], $ids);
+	            	}else{
+	            		$table_query = str_replace('%%WHERE%%', 'AND '.$base_model.'.id IN('.implode(", ", $ids).')', $query_part);
+	          			$query = sprintf('INSERT INTO %s (%s)', $model->table, $table_query);
+	       				$this->tryCatchquery($query);
+	            	}
 	                $registered_model['pkeys_to_check'] = array_values($registered_model['pkeys_to_check']); //reindex from 0
 	            }
 	        }
@@ -1245,18 +1275,16 @@ class AppModel extends Model {
 	                    }
 	                    $at_least_one = true;
 	                    if(self::$locked_views_update){
-	                        if(!isset(self::$cached_views_update[$this->name])){
-	                            self::$cached_views_update[$this->name] = array();
+	                        if(!isset(self::$cached_views_update[$model->table])){
+	                            self::$cached_views_update[$model->table] = array();
 	                        }
-	                        if(!isset(self::$cached_views_update[$this->name][$foreign_key])){
-	                            self::$cached_views_update[$this->name][$foreign_key] = array();
+	                        if(!isset(self::$cached_views_update[$model->table][$foreign_key])){
+	                            self::$cached_views_update[$model->table][$foreign_key] = array();
 	                        }
-	                        if(!isset(self::$cached_views_update[$this->name][$foreign_key][$query_part])){
-	                            self::$cached_views_update[$this->name][$foreign_key][$query_part] = array(
-	                                    "modelTable" => $model->table,
-	                                    "ids" => array());
+	                        if(!isset(self::$cached_views_update[$model->table][$foreign_key][$query_part])){
+	                            self::$cached_views_update[$model->table][$foreign_key][$query_part] = array("ids" => array());
 	                        }
-	                        array_push(self::$cached_views_update[$this->name][$foreign_key][$query_part]["ids"], $this->id);
+	                        array_push(self::$cached_views_update[$model->table][$foreign_key][$query_part]["ids"], $this->id);
 	                    }else{
 	                        $table_query = str_replace('%%WHERE%%', 'AND '.$foreign_key.'='.$this->id, $query_part);
 	                        $query = sprintf('REPLACE INTO %s (%s)', $model->table, $table_query);
@@ -1371,18 +1399,56 @@ class AppModel extends Model {
         self::$locked_views_update = true;
     }
     
+    static function manageViewUpdate($model_table, $foreign_key, $ids, $query_part){
+    	if(self::$locked_views_update){
+    		if(!isset(self::$cached_views_update[$model_table])){
+    			self::$cached_views_update[$model_table] = array();
+    		}
+    		if(!isset(self::$cached_views_update[$model_table][$foreign_key])){
+    			self::$cached_views_update[$model_table][$foreign_key] = array();
+    		}
+    		if(!isset(self::$cached_views_update[$model_table][$foreign_key][$query_part])){
+    			self::$cached_views_update[$model_table][$foreign_key][$query_part] = array("ids" => array());
+    		}
+    		self::$cached_views_update[$model_table][$foreign_key][$query_part]["ids"] = array_merge(self::$cached_views_update[$model_table][$foreign_key][$query_part]["ids"], $ids);
+    	}else{
+    		$table_query = str_replace('%%WHERE%%', 'AND '.$foreign_key.' IN ('.implode(',',$ids).')', $query_part);
+    		$query = sprintf('REPLACE INTO %s (%s)', $model_table, $table_query);
+    		$pages = AppModel::getInstance("", "Page");
+    		$pages->tryCatchquery($query);
+    	}
+    }
+    
     static function releaseBatchViewsUpdateLock(){
-        foreach(self::$cached_views_update as $models){
+    	//just "some" model to do the work
+    	$pages = AppModel::getInstance("", "Page");
+        foreach(self::$cached_views_update as $model_table => $models){
             foreach($models as $foreign_key => $query_parts){
                 foreach($query_parts as $query_part => $details){
                     $table_query = str_replace('%%WHERE%%', 'AND '.$foreign_key.' IN('.implode(",", array_unique($details['ids'])).')', $query_part);
-                    $query = sprintf('REPLACE INTO %s (%s)', $details["modelTable"], $table_query);
-                    //just "some" model to do the work
-                    $pages = AppModel::getInstance("", "Page");
-                    $pages->tryCatchquery($query);
+                    $query = sprintf('REPLACE INTO %s (%s)', $model_table, $table_query);
+					$pages->tryCatchquery($query);
                 }
             }
         }
+        foreach(self::$cached_views_delete as $model_table => $models){
+        	foreach($models as $primary_key => $details){
+        		$query = sprintf('DELETE FROM %s  WHERE %s IN (%s)', $model_table, $primary_key, implode(',',array_unique($details['pkeys_for_deletion'])));	//To fix issue#2980: Edit Storage & View Update 
+				$pages->tryCatchquery($query);
+        	}
+		}
+		foreach(self::$cached_views_insert as $model_table => $base_models){
+			foreach($base_models as $base_model => $query_parts){
+				foreach($query_parts as $query_part => $details){
+					$table_query = str_replace('%%WHERE%%', 'AND '.$base_model.'.id IN('.implode(", ", array_unique($details['ids'])).')', $query_part);
+					$query = sprintf('INSERT INTO %s (%s)', $model_table, $table_query);
+					$pages->tryCatchquery($query);
+				}
+			}
+		}		
+		self::$cached_views_update = array();
+		self::$cached_views_delete = array();
+		self::$cached_views_insert = array();
         self::$locked_views_update = false;
 	}
 }

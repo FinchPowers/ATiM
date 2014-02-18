@@ -2052,6 +2052,27 @@ UPDATE datamart_structure_functions SET flag_active = 0 WHERE link LIKE '%addInt
 DELETE FROM structure_formats WHERE structure_id=(SELECT id FROM structures WHERE alias='ar_breast_tissue_slides') AND structure_field_id=(SELECT id FROM structure_fields WHERE `public_identifier`='' AND `plugin`='Core' AND `model`='FunctionManagement' AND `tablename`='' AND `field`='CopyCtrl' AND `language_label`='copy control' AND `language_tag`='' AND `type`='checkbox' AND `setting`='' AND `default`='' AND `structure_value_domain`=(SELECT id FROM structure_value_domains WHERE domain_name='yes_no_checkbox') AND `language_help`='' AND `validation_control`='open' AND `value_domain_control`='open' AND `field_control`='open' AND `flag_confidential`='0');
 
 -- -----------------------------------------------------------------------------------------------------------------------------------
+-- Issue#2786: set flag_confidential = 1 to appropriated fields
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+UPDATE structure_fields SET flag_confidential = '1' WHERE field IN ('first_name','last_name','date_of_birth','middle_name') AND model = 'Participant';
+ALTER TABLE participant_contacts ADD COLUMN `confidential` tinyint(1) DEFAULT '0';
+ALTER TABLE participant_contacts_revs ADD COLUMN `confidential` tinyint(1) DEFAULT '0';
+INSERT INTO structures(`alias`) VALUES ('participantcontacts_confidential');
+INSERT INTO structure_fields(`plugin`, `model`, `tablename`, `field`, `type`, `structure_value_domain`, `flag_confidential`, `setting`, `default`, `language_help`, `language_label`, `language_tag`) VALUES
+('ClinicalAnnotation', 'ParticipantContact', 'participant_contacts', 'confidential', 'checkbox', (SELECT id FROM structure_value_domains WHERE domain_name='yes_no_checkbox') , '1', '', '', '', 'confidential', '');
+INSERT INTO structure_formats(`structure_id`, `structure_field_id`, `display_column`, `display_order`, `language_heading`, `margin`, `flag_override_label`, `language_label`, `flag_override_tag`, `language_tag`, `flag_override_help`, `language_help`, `flag_override_type`, `type`, `flag_override_setting`, `setting`, `flag_override_default`, `default`, `flag_add`, `flag_add_readonly`, `flag_edit`, `flag_edit_readonly`, `flag_search`, `flag_search_readonly`, `flag_addgrid`, `flag_addgrid_readonly`, `flag_editgrid`, `flag_editgrid_readonly`, `flag_batchedit`, `flag_batchedit_readonly`, `flag_index`, `flag_detail`, `flag_summary`, `flag_float`) VALUES 
+((SELECT id FROM structures WHERE alias='participantcontacts_confidential'), (SELECT id FROM structure_fields WHERE `model`='ParticipantContact' AND `tablename`='participant_contacts' AND `field`='confidential' AND `type`='checkbox' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='yes_no_checkbox')  AND `flag_confidential`='1' AND `setting`='' AND `default`='' AND `language_help`='' AND `language_label`='confidential' AND `language_tag`=''), '1', '0', '', '0', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '1', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '1', '0', '0');
+INSERT INTO structure_formats(`structure_id`, `structure_field_id`, `display_column`, `display_order`, `language_heading`, `margin`, `flag_override_label`, `language_label`, `flag_override_tag`, `language_tag`, `flag_override_help`, `language_help`, `flag_override_type`, `type`, `flag_override_setting`, `setting`, `flag_override_default`, `default`, `flag_add`, `flag_add_readonly`, `flag_edit`, `flag_edit_readonly`, `flag_search`, `flag_search_readonly`, `flag_addgrid`, `flag_addgrid_readonly`, `flag_editgrid`, `flag_editgrid_readonly`, `flag_batchedit`, `flag_batchedit_readonly`, `flag_index`, `flag_detail`, `flag_summary`, `flag_float`) VALUES 
+((SELECT id FROM structures WHERE alias='participantcontacts'), (SELECT id FROM structure_fields WHERE `model`='ParticipantContact' AND `tablename`='participant_contacts' AND `field`='confidential' AND `type`='checkbox' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='yes_no_checkbox')  AND `flag_confidential`='1' AND `setting`='' AND `default`='' AND `language_help`='' AND `language_label`='confidential' AND `language_tag`=''), '1', '1', '', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '1', '0', '0');
+UPDATE structure_fields SET flag_confidential = '0' WHERE field = 'confidential' AND model = 'ParticipantContact';
+INSERT INTO i18n (id,en,fr) VALUES ('confidential','Confidential','Confidentiel');
+REPLACE INTO i18n (id,en,fr) VALUES 
+('error_fk_participant_linked_contacts',
+'Your data cannot be deleted! Linked contact record exists for this participant. Please note some contacts may be confidential and hidden.',
+'Vos données ne peuvent être supprimées! Le participant que vous essayez de supprimer est lié à un contact! Certains contacts peuvent être confidentiels et caché.');
+ 
+-- -----------------------------------------------------------------------------------------------------------------------------------
 -- Review Master/Detail forms for TreatmentExtend and ProtocolExtend
 -- -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -2065,8 +2086,56 @@ DELETE FROM structure_formats WHERE structure_id=(SELECT id FROM structures WHER
 INSERT INTO structures(`alias`) VALUES ('protocol_extend_masters');
 
 -- -----------------------------------------------------------------------------------------------------------------------------------
+-- Disable Participant.batchEdit()
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+UPDATE datamart_structure_functions SET flag_active = '0' WHERE link = '/ClinicalAnnotation/Participants/batchEdit/';
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Issue#2983: realiquot in batch tissue tubes: The aliquot uses/event counter is not updated
+-- Including : In newVersionSetup(), Add code to correct all
+--     . Wrong AliquotMaster.user_counter,
+--     . Wrong AliquotMaster.current_volume,
+--     . Realiquoting.parent_used_volume not null when (Parent)AliquotControl.volume_unit is null,
+--     . InternalUse.used_volume not null when AliquotControl.volume_unit is null,
+--     . SourceAliquot.used_volume not null when AliquotControl.volume_unit is null,
+--     . QualityControl.used_volume not null when AliquotControl.volume_unit is null
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+INSERT INTO i18n (id,en,fr) 
+VALUES
+('aliquot used volume has been removed for following aliquots : ', 'Aliquot used volume has been removed for following aliquots : ', 'Le volume utilisé a été supprimé pour les aliquots : '),
+('aliquot current volume has been corrected for following aliquots : ','Aliquot current volume has been corrected for following aliquots : ', 'Le volume courant a été corrigé pour les aliquots : '),
+('aliquot use counter has been corrected for following aliquots : ', 'Aliquot Uses/Events counter has been corrected for following aliquots : ', 'Le nombre d''Utilisations/Événements a été corrigé pour les aliquots : ');
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Issue#3012: Password change: Add control on old password or administrator password
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+INSERT INTO structures(`alias`) VALUES ('old_password_for_change');
+INSERT INTO structure_fields(`plugin`, `model`, `tablename`, `field`, `type`, `structure_value_domain`, `flag_confidential`, `setting`, `default`, `language_help`, `language_label`, `language_tag`) VALUES
+('Administrate', 'FunctionManagement', '', 'old_password', 'password',  NULL , '0', '', '', '', 'old password', '');
+INSERT INTO structure_formats(`structure_id`, `structure_field_id`, `display_column`, `display_order`, `language_heading`, `margin`, `flag_override_label`, `language_label`, `flag_override_tag`, `language_tag`, `flag_override_help`, `language_help`, `flag_override_type`, `type`, `flag_override_setting`, `setting`, `flag_override_default`, `default`, `flag_add`, `flag_add_readonly`, `flag_edit`, `flag_edit_readonly`, `flag_search`, `flag_search_readonly`, `flag_addgrid`, `flag_addgrid_readonly`, `flag_editgrid`, `flag_editgrid_readonly`, `flag_batchedit`, `flag_batchedit_readonly`, `flag_index`, `flag_detail`, `flag_summary`, `flag_float`) VALUES 
+((SELECT id FROM structures WHERE alias='old_password_for_change'), (SELECT id FROM structure_fields WHERE `model`='FunctionManagement' AND `tablename`='' AND `field`='old_password' AND `type`='password' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='' AND `language_label`='old password' AND `language_tag`=''), '1', '0', '', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');
+INSERT INTO structures(`alias`) VALUES ('admin_user_password_for_change');
+INSERT INTO structure_fields(`plugin`, `model`, `tablename`, `field`, `type`, `structure_value_domain`, `flag_confidential`, `setting`, `default`, `language_help`, `language_label`, `language_tag`) VALUES
+('Administrate', 'FunctionManagement', '', 'admin_user_password_for_change', 'password',  NULL , '0', '', '', '', 'your password', '');
+INSERT INTO structure_formats(`structure_id`, `structure_field_id`, `display_column`, `display_order`, `language_heading`, `margin`, `flag_override_label`, `language_label`, `flag_override_tag`, `language_tag`, `flag_override_help`, `language_help`, `flag_override_type`, `type`, `flag_override_setting`, `setting`, `flag_override_default`, `default`, `flag_add`, `flag_add_readonly`, `flag_edit`, `flag_edit_readonly`, `flag_search`, `flag_search_readonly`, `flag_addgrid`, `flag_addgrid_readonly`, `flag_editgrid`, `flag_editgrid_readonly`, `flag_batchedit`, `flag_batchedit_readonly`, `flag_index`, `flag_detail`, `flag_summary`, `flag_float`) VALUES 
+((SELECT id FROM structures WHERE alias='admin_user_password_for_change'), (SELECT id FROM structure_fields WHERE `model`='FunctionManagement' AND `tablename`='' AND `field`='admin_user_password_for_change' AND `type`='password' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='' AND `language_label`='your password' AND `language_tag`=''), '1', '0', '', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');
+INSERT INTO i18n(id,en,fr) VALUES ('old password','Old Password','Ancien mot de pass'),('your password','Enter Your Password','Saisissez votre mot de passe');
+INSERT INTO structure_validations(structure_field_id, rule) VALUES
+((SELECT id FROM structure_fields WHERE `model`='FunctionManagement' AND `field`='old_password'), 'notEmpty'),
+((SELECT id FROM structure_fields WHERE `model`='FunctionManagement' AND `field`='admin_user_password_for_change'), 'notEmpty');
+UPDATE structure_formats SET `display_order`='3', `language_heading`='security control' WHERE structure_id=(SELECT id FROM structures WHERE alias='admin_user_password_for_change') AND structure_field_id=(SELECT id FROM structure_fields WHERE `model`='FunctionManagement' AND `tablename`='' AND `field`='admin_user_password_for_change' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0');
+INSERT INTO i18n (id,en,fr) VALUES ('security control','Security Control','Contrôle de sécurité');
+INSERT INTO i18n (id,en,fr) 
+VALUES
+('your old password is invalid','Your old password is invalid','Votre ancien mot de passe n''est pas valide'),
+('your own password is invalid','Your own password is invalid','Votre propre mot de passe n''est pas valide');
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
 -- Versions table
 -- -----------------------------------------------------------------------------------------------------------------------------------
 
 INSERT INTO `versions` (version_number, date_installed, trunk_build_number, branch_build_number) 
-VALUES('2.6.0', NOW(),'5564','n/a');
+VALUES('2.6.0', NOW(),'5596?','n/a');
