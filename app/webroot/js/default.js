@@ -663,8 +663,6 @@ function initActions(){
             lastTd = $(table).find("thead th:last").eq(0);
         }
         var firstTh = $(table).find("th.floatingCell:last").siblings().eq(0);
-        console.log($(lastTd).get(0));
-        console.log($(firstTh).get(0));
         width = lastTd.width() + lastTd.position().left + psSize(lastTd, "right") - firstTh.position().left + psSize(firstTh, "left") + 1;
         height = Math.ceil(lastTd.position().top + lastTd.outerHeight() - firstTh.position().top);
         if($(floatingBckGrnd).data("onlyDimension") == undefined){

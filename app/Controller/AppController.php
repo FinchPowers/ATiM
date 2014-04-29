@@ -665,6 +665,9 @@ class AppController extends Controller {
 	 * @return array Model query results
 	 */
 	public function paginate($object = null, $scope = array(), $whitelist = array()) {
+		//TODO Temporary fix linked to issue #3040: TreatmentMaster & EventMaster listall: var $paginate data won't be used 
+		if(!is_null($object) && !isset($this->passedArgs['sort']) && isset($this->paginate[$object->name]['order'])) $object->order = $this->paginate[$object->name]['order'];
+		
 		$model_name = isset($object->base_model) ? $object->base_model : $object->name;		
 		if(isset($object->Behaviors->MasterDetail->__settings[$model_name])){
 			extract($object->Behaviors->MasterDetail->__settings[$model_name]);
@@ -1230,6 +1233,41 @@ class AppController extends Controller {
 		}
 		$this->Version->query('UPDATE parent_to_derivative_sample_controls SET flag_active = false WHERE parent_sample_control_id IS NOT NULL AND parent_sample_control_id NOT IN ('.implode(',',$active_sample_control_ids).')');
 		$this->Version->query('UPDATE aliquot_controls SET flag_active = false WHERE sample_control_id NOT IN ('.implode(',',$active_sample_control_ids).')');
+		
+		// *** 9 *** Clean up structure_permissible_values_custom_controls counters values
+		
+		$StructurePermissibleValuesCustomControl = AppModel::getInstance('', 'StructurePermissibleValuesCustomControl');
+		$has_many_details = array(
+				'hasMany' => array(
+						'StructurePermissibleValuesCustom' => array(
+								'className' => 'StructurePermissibleValuesCustom',
+								'foreignKey' => 'control_id')));
+		$StructurePermissibleValuesCustomControl->bindModel($has_many_details);
+		$all_cusom_lists_controls = $StructurePermissibleValuesCustomControl->find('all');
+		foreach($all_cusom_lists_controls as $new_custom_list) {
+			$values_used_as_input_counter = 0;
+			$values_counter = 0;
+			foreach($new_custom_list['StructurePermissibleValuesCustom'] as $new_custom_value) {
+				if(!$new_custom_value['deleted']) {
+					$values_counter++;
+					if($new_custom_value['use_as_input']) $values_used_as_input_counter++;
+				}
+			}
+			$StructurePermissibleValuesCustomControl->tryCatchQuery("UPDATE structure_permissible_values_custom_controls SET values_counter = $values_counter, values_used_as_input_counter = $values_used_as_input_counter WHERE id = ".$new_custom_list['StructurePermissibleValuesCustomControl']['id']);
+		}
+		
+		// *** 10 *** rebuilts lft rght in storage_masters
+		
+		$storage_master_model = AppModel::getInstance('StorageLayout', 'StorageMaster', true);
+		$result = $storage_master_model->find('first', array('conditions' => array('NOT' => array('StorageMaster.parent_id' => NULL), 'StorageMaster.lft' => NULL)));
+		if($result){
+			self::addWarningMsg(__('rebuilt lft rght for storage_masters'));
+			$storage_master_model->recover('parent');
+		}
+		
+		// *** 11 *** Disable unused treatment_extend_controls
+
+		$this->Version->query("UPDATE treatment_extend_controls SET flag_active = 0 WHERE id NOT IN (select distinct treatment_extend_control_id from treatment_controls WHERE flag_active = 1 AND treatment_extend_control_id IS NOT NULL)");
 		
 		//update the permissions_regenerated flag and redirect
 		$this->Version->data = array('Version' => array('permissions_regenerated' => 1));
