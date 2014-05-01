@@ -1,8 +1,15 @@
-SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
-SET time_zone = "+00:00";
-SET FOREIGN_KEY_CHECKS=0;
+-- ------------------------------------------------------
+-- ATiM Demo Data Script
+-- version: 2.6.0
+--
+-- Note: 
+--    Run after atim_v2.6.0_full_installation.sql
+--
+-- For more information: 
+--    http://www.ctrnet.ca/mediawiki/index.php/Main_Page
+-- ------------------------------------------------------
 
--- -----------------------------------------------------------
+SET FOREIGN_KEY_CHECKS=0;
 
 INSERT INTO `ad_blocks` (`aliquot_master_id`, `block_type`, `patho_dpt_block_code`) VALUES
 (1, 'frozen', ''),
@@ -1669,3 +1676,6 @@ SET FOREIGN_KEY_CHECKS=1;
 UPDATE `groups` SET `flag_show_confidential` = '1'WHERE `id` = '1';
 UPDATE `versions` SET `permissions_regenerated` = '0';
 UPDATE users SET flag_active=1 WHERE id IN (1,2);
+
+UPDATE event_controls SET use_addgrid = 1, use_detail_form_for_index = 1 WHERE disease_site = 'general' AND event_type = 'follow up';
+UPDATE structure_formats SET `flag_addgrid`='1', `flag_index`='1' WHERE structure_id=(SELECT id FROM structures WHERE alias='ed_all_clinical_followup') AND structure_field_id NOT IN (SELECT id FROM structure_fields WHERE `model`='EventMaster' AND `tablename`='event_masters' AND `field`='event_summary');
