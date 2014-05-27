@@ -712,6 +712,7 @@ class PaginatorComponentTest extends CakeTestCase {
  * Tests for missing models
  *
  * @expectedException MissingModelException
+ * @return void
  */
 	public function testPaginateMissingModel() {
 		$Controller = new PaginatorTestController($this->request);

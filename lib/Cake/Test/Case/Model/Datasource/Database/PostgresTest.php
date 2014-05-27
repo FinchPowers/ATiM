@@ -213,6 +213,7 @@ class PostgresTest extends CakeTestCase {
 /**
  * Sets up a Dbo class instance for testing
  *
+ * @return void
  */
 	public function setUp() {
 		parent::setUp();
@@ -226,6 +227,7 @@ class PostgresTest extends CakeTestCase {
 /**
  * Sets up a Dbo class instance for testing
  *
+ * @return void
  */
 	public function tearDown() {
 		parent::tearDown();
@@ -236,6 +238,7 @@ class PostgresTest extends CakeTestCase {
 /**
  * Test field quoting method
  *
+ * @return void
  */
 	public function testFieldQuoting() {
 		$fields = array(

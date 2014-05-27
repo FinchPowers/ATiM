@@ -88,6 +88,7 @@ class SqliteTest extends CakeTestCase {
 /**
  * Sets up a Dbo class instance for testing
  *
+ * @return void
  */
 	public function setUp() {
 		parent::setUp();
@@ -101,6 +102,7 @@ class SqliteTest extends CakeTestCase {
 /**
  * Sets up a Dbo class instance for testing
  *
+ * @return void
  */
 	public function tearDown() {
 		parent::tearDown();
@@ -110,6 +112,7 @@ class SqliteTest extends CakeTestCase {
 /**
  * Tests that SELECT queries from DboSqlite::listSources() are not cached
  *
+ * @return void
  */
 	public function testTableListCacheDisabling() {
 		$this->assertFalse(in_array('foo_test', $this->Dbo->listSources()));
@@ -156,6 +159,7 @@ class SqliteTest extends CakeTestCase {
 /**
  * Tests that cached table descriptions are saved under the sanitized key name
  *
+ * @return void
  */
 	public function testCacheKeyName() {
 		Configure::write('Cache.disable', false);

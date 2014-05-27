@@ -595,6 +595,8 @@ class CookieComponentTest extends CakeTestCase {
 
 /**
  * Test reading empty values.
+ *
+ * @return void
  */
 	public function testReadEmpty() {
 		$_COOKIE['CakeTestCookie'] = array(

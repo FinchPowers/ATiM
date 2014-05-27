@@ -67,6 +67,8 @@ class TextHelperTest extends CakeTestCase {
 
 /**
  * test String class methods are called correctly
+ *
+ * @return void
  */
 	public function testTextHelperProxyMethodCalls() {
 		$methods = array(
@@ -83,6 +85,8 @@ class TextHelperTest extends CakeTestCase {
 
 /**
  * test engine override
+ *
+ * @return void
  */
 	public function testEngineOverride() {
 		App::build(array(
@@ -197,6 +201,8 @@ class TextHelperTest extends CakeTestCase {
 
 /**
  * Data provider for autoLinking
+ *
+ * @return array
  */
 	public static function autoLinkProvider() {
 		return array(

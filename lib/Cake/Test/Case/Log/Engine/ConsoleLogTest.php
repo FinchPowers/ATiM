@@ -62,6 +62,8 @@ class ConsoleLogTest extends CakeTestCase {
 
 /**
  * Test writing to ConsoleOutput
+ *
+ * @return void
  */
 	public function testConsoleOutputWrites() {
 		TestCakeLog::config('test_console_log', array(
@@ -81,6 +83,8 @@ class ConsoleLogTest extends CakeTestCase {
 
 /**
  * Test logging to both ConsoleLog and FileLog
+ *
+ * @return void
  */
 	public function testCombinedLogWriting() {
 		TestCakeLog::config('test_console_log', array(
@@ -117,6 +121,8 @@ class ConsoleLogTest extends CakeTestCase {
 
 /**
  * test default value of stream 'outputAs'
+ *
+ * @return void
  */
 	public function testDefaultOutputAs() {
 		TestCakeLog::config('test_console_log', array(

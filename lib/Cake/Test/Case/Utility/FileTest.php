@@ -124,6 +124,8 @@ class FileTest extends CakeTestCase {
 
 /**
  * testPermission method
+ *
+ * @return void
  */
 	public function testPermission() {
 		$this->skipIf(DIRECTORY_SEPARATOR === '\\', 'File permissions tests not supported on Windows.');
@@ -531,7 +533,7 @@ class FileTest extends CakeTestCase {
 		$path = CAKE . 'Test' . DS . 'test_app' . DS . 'webroot' . DS . 'img' . DS . 'cake.power.gif';
 		$file = new File($path);
 		$expected = 'image/gif';
-		if (function_exists('mime_content_type') && false === mime_content_type($file->pwd())) {
+		if (function_exists('mime_content_type') && mime_content_type($file->pwd()) === false) {
 			$expected = false;
 		}
 		$this->assertEquals($expected, $file->mime());
@@ -547,7 +549,7 @@ class FileTest extends CakeTestCase {
 		$tmpFile = TMP . 'tests' . DS . 'cakephp.file.test.tmp';
 		if (is_writable(dirname($tmpFile)) && (!file_exists($tmpFile) || is_writable($tmpFile))) {
 			return $tmpFile;
-		};
+		}
 
 		if ($paintSkip) {
 			$trace = debug_backtrace();
@@ -559,4 +561,5 @@ class FileTest extends CakeTestCase {
 		}
 		return false;
 	}
+
 }
