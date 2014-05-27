@@ -692,5 +692,4 @@ class TranslateBehavior extends ModelBehavior {
 		}
 		return true;
 	}
-
 }
