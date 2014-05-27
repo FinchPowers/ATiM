@@ -2,8 +2,6 @@
 /**
  * CakeResponse
  *
- * PHP 5
- *
  * CakePHP(tm) : Rapid Development Framework (http://cakephp.org)
  * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
  *
@@ -300,6 +298,8 @@ class CakeResponse {
 		'webapp' => 'application/x-web-app-manifest+json',
 		'vcf' => 'text/x-vcard',
 		'vtt' => 'text/vtt',
+		'mkv' => 'video/x-matroska',
+		'pkpass' => 'application/vnd.apple.pkpass'
 	);
 
 /**
@@ -375,7 +375,7 @@ class CakeResponse {
 	protected $_cookies = array();
 
 /**
- * Class constructor
+ * Constructor
  *
  * @param array $options list of parameters to setup the response. Possible values are:
  *	- body: the response text that should be sent to the client
@@ -570,7 +570,7 @@ class CakeResponse {
 			if (is_numeric($header)) {
 				list($header, $value) = array($value, null);
 			}
-			if (is_null($value)) {
+			if ($value === null) {
 				list($header, $value) = explode(':', $header, 2);
 			}
 			$this->_headers[$header] = is_array($value) ? array_map('trim', $value) : trim($value);
@@ -1281,7 +1281,7 @@ class CakeResponse {
 			$agent = env('HTTP_USER_AGENT');
 
 			if (preg_match('%Opera(/| )([0-9].[0-9]{1,2})%', $agent)) {
-				$contentType = 'application/octetstream';
+				$contentType = 'application/octet-stream';
 			} elseif (preg_match('/MSIE ([0-9].[0-9]{1,2})/', $agent)) {
 				$contentType = 'application/force-download';
 			}
@@ -1296,6 +1296,7 @@ class CakeResponse {
 			}
 			$this->download($name);
 			$this->header('Accept-Ranges', 'bytes');
+			$this->header('Content-Transfer-Encoding', 'binary');
 
 			$httpRange = env('HTTP_RANGE');
 			if (isset($httpRange)) {
@@ -1373,6 +1374,7 @@ class CakeResponse {
 
 		$bufferSize = 8192;
 		set_time_limit(0);
+		session_write_close();
 		while (!feof($file->handle)) {
 			if (!$this->_isActive()) {
 				$file->close();
