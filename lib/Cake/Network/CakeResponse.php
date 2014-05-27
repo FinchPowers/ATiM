@@ -2,6 +2,8 @@
 /**
  * CakeResponse
  *
+ * PHP 5
+ *
  * CakePHP(tm) : Rapid Development Framework (http://cakephp.org)
  * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
  *
@@ -13,7 +15,7 @@
  * @link          http://cakephp.org CakePHP(tm) Project
  * @package       Cake.Network
  * @since         CakePHP(tm) v 2.0
- * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)
+ * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
 App::uses('File', 'Utility');
@@ -298,7 +300,6 @@ class CakeResponse {
 		'webapp' => 'application/x-web-app-manifest+json',
 		'vcf' => 'text/x-vcard',
 		'vtt' => 'text/vtt',
-		'mkv' => 'video/x-matroska',
 	);
 
 /**
@@ -374,7 +375,7 @@ class CakeResponse {
 	protected $_cookies = array();
 
 /**
- * Constructor
+ * Class constructor
  *
  * @param array $options list of parameters to setup the response. Possible values are:
  *	- body: the response text that should be sent to the client
@@ -429,9 +430,9 @@ class CakeResponse {
 	}
 
 /**
- * Sets the cookies that have been added via static method CakeResponse::addCookie()
- * before any other output is sent to the client.
- * Will set the cookies in the order they have been set.
+ * Sets the cookies that have been added via CakeResponse::cookie() before any
+ * other output is sent to the client. Will set the cookies in the order they
+ * have been set.
  *
  * @return void
  */
@@ -569,7 +570,7 @@ class CakeResponse {
 			if (is_numeric($header)) {
 				list($header, $value) = array($value, null);
 			}
-			if ($value === null) {
+			if (is_null($value)) {
 				list($header, $value) = explode(':', $header, 2);
 			}
 			$this->_headers[$header] = is_array($value) ? array_map('trim', $value) : trim($value);
@@ -1280,7 +1281,7 @@ class CakeResponse {
 			$agent = env('HTTP_USER_AGENT');
 
 			if (preg_match('%Opera(/| )([0-9].[0-9]{1,2})%', $agent)) {
-				$contentType = 'application/octet-stream';
+				$contentType = 'application/octetstream';
 			} elseif (preg_match('/MSIE ([0-9].[0-9]{1,2})/', $agent)) {
 				$contentType = 'application/force-download';
 			}
@@ -1295,7 +1296,6 @@ class CakeResponse {
 			}
 			$this->download($name);
 			$this->header('Accept-Ranges', 'bytes');
-			$this->header('Content-Transfer-Encoding', 'binary');
 
 			$httpRange = env('HTTP_RANGE');
 			if (isset($httpRange)) {
@@ -1373,7 +1373,6 @@ class CakeResponse {
 
 		$bufferSize = 8192;
 		set_time_limit(0);
-		session_write_close();
 		while (!feof($file->handle)) {
 			if (!$this->_isActive()) {
 				$file->close();

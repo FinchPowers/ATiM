@@ -130,7 +130,7 @@ class Hash {
 			if ($conditions) {
 				$filter = array();
 				foreach ($next as $item) {
-					if (self::_matches($item, $conditions)) {
+					if (is_array($item) && self::_matches($item, $conditions)) {
 						$filter[] = $item;
 					}
 				}
@@ -346,10 +346,15 @@ class Hash {
 		} elseif (!empty($valuePath)) {
 			$vals = self::extract($data, $valuePath);
 		}
+		if (empty($vals)) {
+			$vals = array_fill(0, count($keys), null);
+		}
 
-		$count = count($keys);
-		for ($i = 0; $i < $count; $i++) {
-			$vals[$i] = isset($vals[$i]) ? $vals[$i] : null;
+		if (count($keys) !== count($vals)) {
+			throw new CakeException(__d(
+				'cake_dev',
+				'Hash::combine() needs an equal number of keys + values.'
+			));
 		}
 
 		if ($groupPath !== null) {
@@ -626,9 +631,7 @@ class Hash {
 		if (empty($data)) {
 			return false;
 		}
-		$values = array_values($data);
-		$str = implode('', $values);
-		return (bool)ctype_digit($str);
+		return $data === array_filter($data, 'is_numeric');
 	}
 
 /**
