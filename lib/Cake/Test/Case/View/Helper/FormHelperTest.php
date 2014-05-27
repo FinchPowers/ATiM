@@ -1274,7 +1274,7 @@ class FormHelperTest extends CakeTestCase {
  *
  * @return void
  */
-	public function testFormSecuredFileInput() {
+	public function testSecuredFileInput() {
 		$this->Form->request['_Token'] = array('key' => 'testKey');
 		$this->assertEquals(array(), $this->Form->fields);
 
@@ -1291,7 +1291,7 @@ class FormHelperTest extends CakeTestCase {
  *
  * @return void
  */
-	public function testFormSecuredMultipleSelect() {
+	public function testSecuredMultipleSelect() {
 		$this->Form->request['_Token'] = array('key' => 'testKey');
 		$this->assertEquals(array(), $this->Form->fields);
 		$options = array('1' => 'one', '2' => 'two');
@@ -1310,7 +1310,7 @@ class FormHelperTest extends CakeTestCase {
  *
  * @return void
  */
-	public function testFormSecuredRadio() {
+	public function testSecuredRadio() {
 		$this->Form->request['_Token'] = array('key' => 'testKey');
 		$this->assertEquals(array(), $this->Form->fields);
 		$options = array('1' => 'option1', '2' => 'option2');
@@ -1325,7 +1325,7 @@ class FormHelperTest extends CakeTestCase {
  *
  * @return void
  */
-	public function testFormSecuredAndDisabledNotAssoc() {
+	public function testSecuredAndDisabledNotAssoc() {
 		$this->Form->request['_Token'] = array('key' => 'testKey');
 
 		$this->Form->select('Model.select', array(1, 2), array('disabled'));
@@ -1347,7 +1347,7 @@ class FormHelperTest extends CakeTestCase {
  *
  * @return void
  */
-	public function testFormSecuredAndDisabled() {
+	public function testSecuredAndDisabled() {
 		$this->Form->request['_Token'] = array('key' => 'testKey');
 
 		$this->Form->checkbox('Model.checkbox', array('disabled' => true));
@@ -1367,6 +1367,34 @@ class FormHelperTest extends CakeTestCase {
 			'Model.radio' => ''
 		);
 		$this->assertEquals($expected, $this->Form->fields);
+	}
+
+/**
+ * Test that only the path + query elements of a form's URL show up in their hash.
+ *
+ * @return void
+ */
+	public function testSecuredFormUrlIgnoresHost() {
+		$this->Form->request['_Token'] = array('key' => 'testKey');
+
+		$expected = '0ff0c85cd70584d8fd18fa136846d22c66c21e2d%3A';
+		$this->Form->create('Address', array(
+			'url' => array('controller' => 'articles', 'action' => 'view', 1, '?' => array('page' => 1))
+		));
+		$result = $this->Form->secure();
+		$this->assertContains($expected, $result);
+
+		$this->Form->create('Address', array('url' => 'http://localhost/articles/view/1?page=1'));
+		$result = $this->Form->secure();
+		$this->assertContains($expected, $result, 'Full URL should only use path and query.');
+
+		$this->Form->create('Address', array('url' => '/articles/view/1?page=1'));
+		$result = $this->Form->secure();
+		$this->assertContains($expected, $result, 'URL path + query should work.');
+
+		$this->Form->create('Address', array('url' => '/articles/view/1'));
+		$result = $this->Form->secure();
+		$this->assertNotContains($expected, $result, 'URL is different');
 	}
 
 /**

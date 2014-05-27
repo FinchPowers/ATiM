@@ -963,7 +963,7 @@ class AuthComponentTest extends CakeTestCase {
 			array($CakeRequest, $CakeResponse)
 		);
 
-		$expected = Router::url($this->Auth->loginRedirect, true);
+		$expected = Router::url($this->Auth->loginRedirect);
 		$Controller->expects($this->once())
 			->method('redirect')
 			->with($this->equalTo($expected));
