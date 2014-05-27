@@ -5,8 +5,6 @@
  *
  * This is the heart of CakePHP's operation.
  *
- * PHP 5
- *
  * CakePHP(tm) : Rapid Development Framework (http://cakephp.org)
  * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
  *
@@ -257,7 +255,7 @@ class Dispatcher implements CakeEventListener {
 	}
 
 /**
- * Load controller and return controller classname
+ * Load controller and return controller class name
  *
  * @param CakeRequest $request
  * @return string|boolean Name of controller class name

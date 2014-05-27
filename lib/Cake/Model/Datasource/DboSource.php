@@ -2,8 +2,6 @@
 /**
  * Dbo Source
  *
- * PHP 5
- *
  * CakePHP(tm) : Rapid Development Framework (http://cakephp.org)
  * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
  *
@@ -672,7 +670,8 @@ class DboSource extends DataSource {
 		if ($cache && ($cached = $this->getQueryCache($sql, $params)) !== false) {
 			return $cached;
 		}
-		if ($result = $this->execute($sql, array(), $params)) {
+		$result = $this->execute($sql, array(), $params);
+		if ($result) {
 			$out = array();
 
 			if ($this->hasResult()) {
@@ -1407,7 +1406,7 @@ class DboSource extends DataSource {
 			if (isset($merge[$association])) {
 				$data[$association] = $merge[$association][0];
 			} else {
-				if (count($merge[0][$association]) > 1) {
+				if (!empty($merge[0][$association])) {
 					foreach ($merge[0] as $assoc => $data2) {
 						if ($assoc !== $association) {
 							$merge[0][$association][$assoc] = $data2;
@@ -3314,7 +3313,6 @@ class DboSource extends DataSource {
 
 /**
  * Used for storing in cache the results of the in-memory methodCache
- *
  */
 	public function __destruct() {
 		if ($this->_methodCacheChange) {

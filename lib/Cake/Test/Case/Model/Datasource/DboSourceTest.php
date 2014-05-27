@@ -2,19 +2,18 @@
 /**
  * DboSourceTest file
  *
- * PHP 5
- *
  * CakePHP(tm) Tests <http://book.cakephp.org/2.0/en/development/testing.html>
  * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
  *
- *	Licensed under The Open Group Test Suite License
- *	Redistributions of files must retain the above copyright notice.
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
  *
  * @copyright     Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
  * @link          http://book.cakephp.org/2.0/en/development/testing.html CakePHP(tm) Tests
  * @package       Cake.Test.Case.Model.Datasource
  * @since         CakePHP(tm) v 1.2.0.4206
- * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)
+ * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
 App::uses('Model', 'Model');
@@ -26,6 +25,11 @@ App::uses('DboSecondTestSource', 'Model/Datasource');
 App::uses('MockDataSource', 'Model/Datasource');
 require_once dirname(dirname(__FILE__)) . DS . 'models.php';
 
+/**
+ * Class MockPDO
+ *
+ * @package       Cake.Test.Case.Model.Datasource
+ */
 class MockPDO extends PDO {
 
 	public function __construct() {
@@ -33,9 +37,19 @@ class MockPDO extends PDO {
 
 }
 
+/**
+ * Class MockDataSource
+ *
+ * @package       Cake.Test.Case.Model.Datasource
+ */
 class MockDataSource extends DataSource {
 }
 
+/**
+ * Class DboTestSource
+ *
+ * @package       Cake.Test.Case.Model.Datasource
+ */
 class DboTestSource extends DboSource {
 
 	public $nestedSupport = false;
@@ -62,6 +76,11 @@ class DboTestSource extends DboSource {
 
 }
 
+/**
+ * Class DboSecondTestSource
+ *
+ * @package       Cake.Test.Case.Model.Datasource
+ */
 class DboSecondTestSource extends DboSource {
 
 	public $startQuote = '_';
