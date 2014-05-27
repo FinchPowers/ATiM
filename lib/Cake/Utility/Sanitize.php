@@ -20,7 +20,8 @@
  * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
 
-App::import('Model', 'ConnectionManager');
+App::uses('ConnectionManager', 'Model');
+
 
 /**
  * Data Sanitization.

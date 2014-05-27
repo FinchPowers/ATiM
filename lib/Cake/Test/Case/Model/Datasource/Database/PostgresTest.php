@@ -76,7 +76,7 @@ class PostgresTestModel extends Model {
 /**
  * useTable property
  *
- * @var bool false
+ * @var boolean
  */
 	public $useTable = false;
 
@@ -164,7 +164,7 @@ class PostgresClientTestModel extends Model {
 /**
  * useTable property
  *
- * @var bool false
+ * @var boolean
  */
 	public $useTable = false;
 
