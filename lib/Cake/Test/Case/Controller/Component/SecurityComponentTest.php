@@ -1139,7 +1139,6 @@ class SecurityComponentTest extends CakeTestCase {
 		$this->assertFalse($this->Controller->Security->validatePost($this->Controller));
 	}
 
-
 /**
  * test that a requestAction's controller will have the _Token appended to
  * the params.
