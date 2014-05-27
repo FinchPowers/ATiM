@@ -77,7 +77,7 @@ class AclComponentTest extends CakeTestCase {
 	}
 
 /**
- * test that adapter() whines when the class is not an AclBase
+ * test that adapter() whines when the class does not implement AclInterface
  *
  * @expectedException CakeException
  * @return void

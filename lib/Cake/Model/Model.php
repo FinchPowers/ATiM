@@ -1864,9 +1864,9 @@ class Model extends Object implements CakeEventListener {
 				$success = $this->data;
 			}
 
-			$this->data = false;
 			$this->_clearCache();
 			$this->validationErrors = array();
+			$this->data = false;
 		}
 
 		$this->whitelist = $_whitelist;
@@ -3484,7 +3484,7 @@ class Model extends Object implements CakeEventListener {
 			$this->tablePrefix = $db->config['prefix'];
 		}
 
-		$this->schemaName = $db->getSchemaName();
+		$this->schemaName = (empty($this->schemaName) ? $db->getSchemaName() : $this->schemaName);
 	}
 
 /**
