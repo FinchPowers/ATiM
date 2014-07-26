@@ -28,6 +28,7 @@ class Browser extends DatamartAppModel {
 	const USE_KEY = 3;
 	const ANCESTOR_IS_CHILD = 4;
 	const JOIN_FIELD = 5;
+	const SUB_MODEL = 6;
 	
 	public static $cache = array();
 	
@@ -1115,11 +1116,17 @@ class Browser extends DatamartAppModel {
 		}
 		
 		$node = $this->nodes[0];
+		$conditions = array();
+		$model = $node[self::MODEL];
+		if($node[self::SUB_MODEL]){
+		    $conditions[$model->name.".".$model->getControlForeign()] = $node[self::SUB_MODEL];
+		}
 		array_unshift($fields, 'CONCAT("", '.$node[self::MODEL]->name.".".$node[self::USE_KEY].') AS '.$node[self::MODEL]->name);
+		$conditions[$model->name.".".$node[self::USE_KEY]] = $primary_node_ids;
 		$this->search_parameters = array(
 			'fields'		=> $fields,
 			'joins'			=> $joins, 
-			'conditions'	=> array($node[self::MODEL]->name.".".$node[self::USE_KEY] => $primary_node_ids),
+			'conditions'	=> $conditions,
 			'order'			=> $order,
 			'recursive'		=> -1
 		);
@@ -1163,15 +1170,12 @@ class Browser extends DatamartAppModel {
 		foreach($nodes_to_fetch as $node){
 			$current_browsing = self::$browsing_result_model->findById($node);
 			$current_model = AppModel::getInstance($current_browsing['DatamartStructure']['plugin'], $current_browsing['DatamartStructure']['model'], true);
+			$current_sub_model = null;
+			if ($current_browsing['BrowsingResult']['browsing_structures_sub_id']) {
+			    $current_sub_model = $current_browsing['BrowsingResult']['browsing_structures_sub_id'];
+			}
 			$ids = explode(",", $current_browsing['BrowsingResult']['id_csv']);
 			$ids[] = 0;
-			
-			$control_id = empty($current_browsing['DatamartStructure']['control_master_model']) ? false : $current_model->find('all', array(
-				'fields' => array($current_model->getControlForeign()),
-				'conditions' => array($current_browsing['DatamartStructure']['model'].".".$current_model->primaryKey => $ids),
-				'group' => array($current_model->getControlForeign()), 
-				'limit' => 2));
-			
 			$model_and_struct_for_node = self::$browsing_result_model->getModelAndStructureForNode($current_browsing);
 			$structure = $model_and_struct_for_node['structure'];
 			$header_sub_type = ($model_and_struct_for_node['header_sub_type'] ? "/".self::getTranslatedDatabrowserLabel($model_and_struct_for_node['header_sub_type']) : '').' ';
@@ -1179,7 +1183,6 @@ class Browser extends DatamartAppModel {
 				//must use the generic structure (or its empty...)
 				AppController::addInfoMsg(__("the results contain various data types, so the details are not displayed"));
 			} 
-			
 			if($this->checklist_model == null){
 				$this->checklist_sub_models_id_filter = Browser::getDropdownSubFiltering($current_browsing);
 				$this->checklist_use_key = $current_model->primaryKey;
@@ -1231,7 +1234,8 @@ class Browser extends DatamartAppModel {
 			}
 			
 			//update header
-			$count = $current_model->find('count', array('conditions' => array($current_model->name.".".$current_model->primaryKey => $ids)));
+			$count = $current_model->find('count', array('conditions' => array($current_model->name.".".$current_model->primaryKey => $ids),
+			                                             'recursive' => -1));
 			$header[] = __($current_browsing['DatamartStructure']['display_name']).$header_sub_type."(".$count.")";
 			$this->nodes[] = array(
 				self::NODE_ID => $node, 
@@ -1239,7 +1243,8 @@ class Browser extends DatamartAppModel {
 				self::MODEL => $current_model, 
 				self::USE_KEY => $current_model->primaryKey,
 				self::ANCESTOR_IS_CHILD => $ancestor_is_child,
-				self::JOIN_FIELD => $join_field
+				self::JOIN_FIELD => $join_field,
+			    self::SUB_MODEL => $current_sub_model
 			);
 			$last_browsing = $current_browsing;
 			++ $iteration_count;
@@ -1251,7 +1256,7 @@ class Browser extends DatamartAppModel {
 		$this->count = $this->nodes[0][self::MODEL]->find('count', 
             array('joins' => $this->search_parameters['joins'],
                   'conditions' => $this->search_parameters['conditions'],
-                  'recursive' => 0));
+                  'recursive' => -1));
 		$this->checklist_header = implode(" - ", $header); 
 		$this->result_structure = $result_structure;
 	}
@@ -1259,7 +1264,6 @@ class Browser extends DatamartAppModel {
 	private function fillBuffer($chunk_size){
 		$this->search_parameters['limit'] = $chunk_size;
 		$this->search_parameters['offset'] = $this->offset;
-		
 		$lines = $this->nodes[0][self::MODEL]->find('all', $this->search_parameters);
 		$this->offset += $chunk_size;
 
@@ -1283,19 +1287,6 @@ class Browser extends DatamartAppModel {
 	 * @return Returns an array of a portion of the data. Successive calls move the pointer forward.
 	 */
 	public function getDataChunk($chunk_size){
-
-//TODO Remove temporary fix for issue #2767
-$tmp_order = null;
-if(isset($this->search_parameters['order'])) {
-	if(preg_match('/^([0-9]+\-){0,1}(.+(Detail|Control)\..+)\ (asc|desc)$/', $this->search_parameters['order'], $matches)) {
-		$tmp_order['sort'] = $matches[2];
-		$tmp_order['direction'] = $matches[4];
-		$this->search_parameters['order'] = array();
-	} else if(preg_match('/^([0-9]+\-)(.+)\.(.+)\ (asc|desc)$/', $this->search_parameters['order'], $matches)) {
-		$this->search_parameters['order'] = $matches[2].'Browser.'.$matches[3].' '.$matches[4];
-	}
-}
-
 		$this->fillBuffer($chunk_size);
 		if(empty($this->rows_buffer)){
 			$chunk = array();
@@ -1337,12 +1328,6 @@ if(isset($this->search_parameters['order'])) {
 				++ $count;
 			}
 		}
-
-//TODO Remove temporary fix for issue #2767		
-if($tmp_order) {
-	$chunk = AppModel::sortWithUrl($chunk, $tmp_order);
-}		
-		
 		return $chunk;
 	}
 	
