@@ -1198,7 +1198,7 @@ class Browser extends DatamartAppModel {
 			$prefix = '';
 			if($iteration_count > 1){
 				//prefix all models with their node id, except for the first node
-				$prefix = $node.'-';
+				$prefix = $node.'_';
 			}
 			//structure merge, add 100 * iteration count to display column
 			foreach($structure['Sfs'] as $sfs){
