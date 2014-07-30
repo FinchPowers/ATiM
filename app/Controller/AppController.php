@@ -815,8 +815,7 @@ class AppController extends Controller {
 						'hasOne' => $has_one,
 						'belongsTo' => array(
 							$control_class => array(
-								'className' => $control_class,
-								$control_field
+								'className' => $control_class
 							)
 						)
 					), false

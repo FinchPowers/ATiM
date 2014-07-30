@@ -134,31 +134,48 @@ class MasterDetailBehavior extends ModelBehavior {
 	    }
 	    return false;
 	}
+	
+	public function getDetailJoin(Model $model, $control_id, $alternate_model_name=null){
+	    extract($this->__settings[$model->alias]);
+	    assert($is_master_model) or die("getDetailJoin can only be called from master model");
+	    if($alternate_model_name === null){
+	        $model_name = $model->name;
+	        $detail_name = $detail_class;
+	    }else{
+	        $model_name = $alternate_model_name;
+	        $detail_name = str_replace("Master", "Detail", $alternate_model_name);
+	    }
+	    $detail_control_name = $model->belongsTo[$default_class."Control"]['className'];
+	    $plugin = '';
+	    if(strpos($detail_control_name, '.') !== false){
+	        list($plugin , $detail_control_name) = explode('.', $detail_control_name);
+	    }
+	    $detail_control = AppModel::getInstance($plugin, $detail_control_name, true);
+	    $detail_info = $detail_control->find('first', array('conditions' => array($detail_control->name.".id" => $control_id)));
+	    assert($detail_info) or die("detail_info is empty");
+	    $detail_info = $detail_info[$detail_control_name];
+	    return array(
+            'table' => $detail_info['detail_tablename'],
+            'alias'	=> $detail_name,
+            'type'	=> 'LEFT',
+            'conditions' => array(
+                    $model_name.".".$model->primaryKey." = ".$detail_name.".".$master_foreign
+            )
+	    );
+	}
 
 	public function beforeFind(Model $model, $query) {
 		// make all SETTINGS into individual VARIABLES, with the KEYS as names
 		extract($this->__settings[$model->alias]);
 		if($is_master_model){
+		    if(isset($model->$detail_class) && isset($model->$detail_class->table)) {
+		        // binding already done via AppController::buildDetailBinding
+		        return;
+		    }
 			//this is a master/detail. See if the find is made on a specific control id. If so, join the detail table
-			$model_name = isset($model->base_model) ? $model->base_model : $model->name;
 			$control_id = $model->getSingleControlIdCondition($query); 
 			if($control_id !== false){
-			    $detail_control_name = $model->belongsTo[$default_class."Control"]['className'];
-			    $plugin = '';
-			    if(strpos($detail_control_name, '.') !== false){
-			        list($plugin , $detail_control_name) = explode('.', $detail_control_name);
-			    }
-			    $detail_control = AppModel::getInstance($plugin, $detail_control_name, true);
-			    $detail_info = $detail_control->find('first', array('conditions' => array($detail_control->name.".id" => $control_id)));
-			    $detail_info = $detail_info[$detail_control_name];
-			    $query['joins'][] = array(
-        		    'table' => $detail_info['detail_tablename'],
-                    'alias'	=> $detail_class,
-                    'type'	=> 'INNER',
-                    'conditions' => array(
-	                    $model->name.".".$model->primaryKey." = ".$detail_class.".".$master_foreign
-                    )
-	            );
+			    $query['joins'][] = $model->getDetailJoin($control_id);
 			}
 		}
 		return $query;

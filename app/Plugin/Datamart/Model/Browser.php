@@ -1084,6 +1084,10 @@ class Browser extends DatamartAppModel {
 		return $nodes_to_fetch;
 	}
 	
+	private function getModelAlias($node){
+	    return $node[self::NODE_ID]."_".$node[self::MODEL]->name;
+	}
+	
 	/**
 	 * Builds the search parameters array
 	 * @note: Hardcoded for collections
@@ -1095,15 +1099,14 @@ class Browser extends DatamartAppModel {
 			$node = $this->nodes[$i];
 			$ancestor_node = $this->nodes[$i - 1];
 			$condition = null;
-			$alias = $node[self::MODEL]->name."Browser";
-			$ancestor_alias = $i > 1 ? $ancestor_node[self::MODEL]->name."Browser" : $ancestor_node[self::MODEL]->name;
+			$alias = $this->getModelAlias($node);
+			$ancestor_alias = $i > 1 ? $this->getModelAlias($ancestor_node) : $ancestor_node[self::MODEL]->name;
 			if($node[self::ANCESTOR_IS_CHILD]){
 				$condition = $alias.".".$node[self::USE_KEY]." = ".$ancestor_alias.".".$node[self::JOIN_FIELD];
 			}else{
 				$condition = $alias.".".$node[self::JOIN_FIELD]." = ".$ancestor_alias.".".$ancestor_node[self::USE_KEY];
 			}
 			$fields[] = 'CONCAT("", '.$alias.".".$node[self::USE_KEY].') AS '.$alias;
-			
 			$joins[] = array(
 				'table' => $node[self::MODEL]->table,
 				'alias'	=> $alias,
@@ -1113,6 +1116,9 @@ class Browser extends DatamartAppModel {
 					$alias.".".$node[self::USE_KEY] => $node[self::IDS]
 				)
 			);
+			if($node[self::SUB_MODEL]){
+			    $joins[] = $node[self::MODEL]->getDetailJoin($node[self::SUB_MODEL], $alias);
+			}
 		}
 		
 		$node = $this->nodes[0];
@@ -1128,7 +1134,7 @@ class Browser extends DatamartAppModel {
 			'joins'			=> $joins, 
 			'conditions'	=> $conditions,
 			'order'			=> $order,
-			'recursive'		=> -1
+			'recursive'		=> 1
 		);
 	}
 	
@@ -1238,7 +1244,7 @@ class Browser extends DatamartAppModel {
 			                                             'recursive' => -1));
 			$header[] = __($current_browsing['DatamartStructure']['display_name']).$header_sub_type."(".$count.")";
 			$this->nodes[] = array(
-				self::NODE_ID => $node, 
+				self::NODE_ID => $node,
 				self::IDS => $ids, 
 				self::MODEL => $current_model, 
 				self::USE_KEY => $current_model->primaryKey,
@@ -1299,7 +1305,7 @@ class Browser extends DatamartAppModel {
 				$prefix = '';
 				if($count){
 					//set a prefix when model != 0 (the first one cannot be prefixed because of links and checkboxes)
-					$prefix = $node[self::NODE_ID].'-';
+					$prefix = $node[self::NODE_ID].'_';
 				}
 				$model_data_tmp = $node[self::MODEL]->find('all', array(
 					'fields'	=> '*',
