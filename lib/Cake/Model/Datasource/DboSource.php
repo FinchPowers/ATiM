@@ -430,7 +430,6 @@ class DboSource extends DataSource {
 		$options += array('log' => $this->fullDebug);
 
 		$t = microtime(true);
-		$this->log($sql);
 		$this->_result = $this->_execute($sql, $params);
 
 		if ($options['log']) {
@@ -1035,7 +1034,6 @@ class DboSource extends DataSource {
  */
 	public function read(Model $model, $queryData = array(), $recursive = null) {
 		$queryData = $this->_scrubQueryData($queryData);
-		
 
 		$null = null;
 		$array = array('callbacks' => $queryData['callbacks']);
@@ -1057,6 +1055,7 @@ class DboSource extends DataSource {
 		} else {
 			$queryData['fields'] = $this->fields($model);
 		}
+
 		$_associations = $model->associations();
 
 		if ($model->recursive == -1) {
@@ -1064,6 +1063,7 @@ class DboSource extends DataSource {
 		} elseif ($model->recursive === 0) {
 			unset($_associations[2], $_associations[3]);
 		}
+
 		foreach ($_associations as $type) {
 			foreach ($model->{$type} as $assoc => $assocData) {
 				$linkModel = $model->{$assoc};
@@ -1080,7 +1080,9 @@ class DboSource extends DataSource {
 				}
 			}
 		}
+
 		$query = $this->generateAssociationQuery($model, null, null, null, null, $queryData, false, $null);
+
 		$resultSet = $this->fetchAll($query, $model->cacheQueries);
 
 		if ($resultSet === false) {
