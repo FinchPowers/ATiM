@@ -28,7 +28,7 @@ class Browser extends DatamartAppModel {
 	const USE_KEY = 3;
 	const ANCESTOR_IS_CHILD = 4;
 	const JOIN_FIELD = 5;
-	const SUB_MODEL = 6;
+	const SUB_MODEL_ID = 6;
 	
 	public static $cache = array();
 	
@@ -1116,16 +1116,16 @@ class Browser extends DatamartAppModel {
 					$alias.".".$node[self::USE_KEY] => $node[self::IDS]
 				)
 			);
-			if($node[self::SUB_MODEL]){
-			    $joins[] = $node[self::MODEL]->getDetailJoin($node[self::SUB_MODEL], $alias);
+			if($node[self::SUB_MODEL_ID]){
+			    $joins[] = $node[self::MODEL]->getDetailJoin($node[self::SUB_MODEL_ID], $alias);
 			}
 		}
 		
 		$node = $this->nodes[0];
 		$conditions = array();
 		$model = $node[self::MODEL];
-		if($node[self::SUB_MODEL]){
-		    $conditions[$model->name.".".$model->getControlForeign()] = $node[self::SUB_MODEL];
+		if($node[self::SUB_MODEL_ID]){
+		    $conditions[$model->name.".".$model->getControlForeign()] = $node[self::SUB_MODEL_ID];
 		}
 		array_unshift($fields, 'CONCAT("", '.$node[self::MODEL]->name.".".$node[self::USE_KEY].') AS '.$node[self::MODEL]->name);
 		$conditions[$model->name.".".$node[self::USE_KEY]] = $primary_node_ids;
@@ -1250,7 +1250,7 @@ class Browser extends DatamartAppModel {
 				self::USE_KEY => $current_model->primaryKey,
 				self::ANCESTOR_IS_CHILD => $ancestor_is_child,
 				self::JOIN_FIELD => $join_field,
-			    self::SUB_MODEL => $current_sub_model
+			    self::SUB_MODEL_ID => $current_sub_model
 			);
 			$last_browsing = $current_browsing;
 			++ $iteration_count;
