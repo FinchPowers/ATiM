@@ -118,9 +118,40 @@ class AppModel extends Model {
 		    //properly because cake core flushes them out.
 		    //NL Comment See notes on eventum $data[$this->name]['-'] = "foo";
 			$data[$this->name]['-'] = "foo";
-		} 
+		}
 		
-		return parent::save($data, $validate, $fieldList);
+		$moveFiles = array();
+		if ($this->name == 'Participant') {
+        	foreach($data as $structureName => $structure){
+        	    foreach($structure as $fieldName => $value) {
+        	        if(is_array($value)) {
+            	        $keys = array_keys($value);
+            	        if($keys == ['name', 'type', 'tmp_name', 'error', 'size']) {
+            	            if (!file_exists($value['tmp_name'])) {
+            	                die('Error with temporary file');
+            	            }
+            	            array_push($moveFiles, ['tmpName' => $value['tmp_name'],
+            	                                    'prefix' => $structureName.'.'.$fieldName,
+            	                                    'suffix' => $value['name']]);
+            	            $data[$structureName][$fieldName] = $structureName.'.'.$fieldName.'.%d.'.$value['name'];
+            	        }
+        	        }
+        	    }
+        	}
+		}
+		$result = parent::save($data, $validate, $fieldList);
+		if($moveFiles) {
+		    //make sure directory exists
+		    $dir = Configure::read('uploadDirectory');
+		    if(!is_dir($dir)) {
+		        mkdir($dir);
+		    }
+    		foreach($moveFiles as $moveFile) {
+    		    $newName = $dir.'/'.$moveFile['prefix'].'.'.$this->getLastInsertID().'.'.$moveFile['suffix'];
+    		    move_uploaded_file($moveFile['tmpName'], $newName);
+    		}
+		}
+		return $result;
 	}
 	
 	/**
