@@ -85,8 +85,55 @@ class AppModel extends Model {
 			}
 		}
 		parent::__construct($id, $table, $ds);
-	}
+    }
+
+    /**
+     * Finds the uploaded files from the $data array. Update the $data array
+     * with the name the stored file will have and returns the $mode_files
+     * directive array to
+     **/
+    private function filter_move_files($data) {
+		$move_files = array();
+        if(!is_array($data)) {
+            return $move_files;
+        }
+        foreach($data as $model_name => $fields){
+            foreach($fields as $field_name => $value) {
+                if(is_array($value)) {
+                    $keys = array_keys($value);
+                    if($keys == ['name', 'type', 'tmp_name', 'error', 'size']) {
+                        if (!file_exists($value['tmp_name'])) {
+                            die('Error with temporary file');
+                        }
+                        array_push($moveFiles, ['tmpName' => $value['tmp_name'],
+                                                'prefix' => $model_name.'.'.$field_name,
+                                                'suffix' => $value['name']]);
+                        $data[$model_name][$field_name] = $structure_name.'.'.$field_name.'.%d.'.$value['name'];
+                    }
+                }
+            }
+        }
+        return $move_files;
+    }
 	
+    /**
+     * Takes the move_files array returned by filter_move_files and moves the
+     * uploaded files to the configured directory with the set file name.
+     **/
+    private function move_files($move_files, $last_insert_id) {
+		if($move_files) {
+		    //make sure directory exists
+		    $dir = Configure::read('uploadDirectory');
+		    if(!is_dir($dir)) {
+		        mkdir($dir);
+		    }
+    		foreach($move_files as $move_file) {
+    		    $newName = $dir.'/'.$move_file['prefix'].'.'.$last_insert_id.'.'.$move_file['suffix'];
+    		    move_uploaded_file($moveFile['tmpName'], $newName);
+    		}
+        }
+    }
+
 	/**
 	 * Override to prevent saving id directly with the array to avoid hacks
 	 * @see Model::save()
@@ -120,37 +167,10 @@ class AppModel extends Model {
 			$data[$this->name]['-'] = "foo";
 		}
 		
-		$moveFiles = array();
-		if ($this->name == 'Participant') {
-        	foreach($data as $structureName => $structure){
-        	    foreach($structure as $fieldName => $value) {
-        	        if(is_array($value)) {
-            	        $keys = array_keys($value);
-            	        if($keys == ['name', 'type', 'tmp_name', 'error', 'size']) {
-            	            if (!file_exists($value['tmp_name'])) {
-            	                die('Error with temporary file');
-            	            }
-            	            array_push($moveFiles, ['tmpName' => $value['tmp_name'],
-            	                                    'prefix' => $structureName.'.'.$fieldName,
-            	                                    'suffix' => $value['name']]);
-            	            $data[$structureName][$fieldName] = $structureName.'.'.$fieldName.'.%d.'.$value['name'];
-            	        }
-        	        }
-        	    }
-        	}
-		}
+        $move_files = $this->filter_move_files($data);
 		$result = parent::save($data, $validate, $fieldList);
-		if($moveFiles) {
-		    //make sure directory exists
-		    $dir = Configure::read('uploadDirectory');
-		    if(!is_dir($dir)) {
-		        mkdir($dir);
-		    }
-    		foreach($moveFiles as $moveFile) {
-    		    $newName = $dir.'/'.$moveFile['prefix'].'.'.$this->getLastInsertID().'.'.$moveFile['suffix'];
-    		    move_uploaded_file($moveFile['tmpName'], $newName);
-    		}
-		}
+        $this->move_files($move_files, $this->getLastInsertID());
+
 		return $result;
 	}
 	
