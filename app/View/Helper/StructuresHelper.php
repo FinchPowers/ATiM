@@ -830,7 +830,6 @@ class StructuresHelper extends Helper {
 					}
 				}
 				
-				$display = "";
 				if($options['type'] != "search" && isset(AppModel::$accuracy_config[$table_row_part['tablename']][$table_row_part['field']])){
 					$display = "<div class='accuracy_target_blue'></div>";
 				}
@@ -955,6 +954,8 @@ class StructuresHelper extends Helper {
 				$current_value = str_replace('\n', in_array($options['type'], self::$write_modes) ? "\n" : '<br/>', $current_value);
 				$current_value = str_replace('&dbs;', '\\', $current_value);
 				$display = html_entity_decode($current_value);
+			}else if($table_row_part['type'] == 'file'){
+                $display = '<a href="?file='.$current_value.'">'.__("open file").'</a>';
 			}else{
 				$display = $current_value;
 			}
@@ -2223,7 +2224,7 @@ class StructuresHelper extends Helper {
 						}
 						$current['settings']['options'] = $dropdown_result;
 					}
-					
+
 					if(!isset($stack[$sfs['display_column']][$sfs['display_order']])){
 						$stack[$sfs['display_column']][$sfs['display_order']] = array();
 					}

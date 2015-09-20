@@ -156,7 +156,8 @@ INSERT INTO `datamart_browsing_controls` (`id1`, `id2`, `flag_active_1_to_2`, `f
 ((SELECT id FROM datamart_structures WHERE model = 'Shipment'), (SELECT id FROM datamart_structures WHERE model = 'Order'), @flag_active, @flag_active, 'order_id'),
 ((SELECT id FROM datamart_structures WHERE model = 'OrderItem'), (SELECT id FROM datamart_structures WHERE model = 'Order'), @flag_active, @flag_active, 'order_id');
 
-
+INSERT INTO `key_increments` (`key_name`, `key_value`)
+VALUES('atim_internal_file', 1);
 
 
 

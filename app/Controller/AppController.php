@@ -133,6 +133,7 @@ class AppController extends Controller {
         $die_invalid_file = function($case_type) use (&$file) {
             CakeLog::error("User tried to download invalid file (".$case_type."): ".$file);
             // TODO: redirect to a static page
+            //AppController::getInstance()->redirect("/Pages/err_confidential");
             die('Invalid file');
         };
 
@@ -154,8 +155,7 @@ class AppController extends Controller {
             }
             $index = strpos($file, '.', $index + 1) + 1;
             $this->response->file($full_file,
-                                  array('download' => true,
-                                        'name' => substr($file, $index)));
+                                  array('name' => substr($file, $index)));
             return $this->response;
         }
         $die_invalid_file(3);

@@ -92,7 +92,7 @@ class AppModel extends Model {
      * with the name the stored file will have and returns the $mode_files
      * directive array to
      **/
-    private function filter_move_files($data) {
+    private function filter_move_files(&$data) {
 		$move_files = array();
         if(!is_array($data)) {
             return $move_files;
@@ -105,10 +105,12 @@ class AppModel extends Model {
                         if (!file_exists($value['tmp_name'])) {
                             die('Error with temporary file');
                         }
-                        array_push($moveFiles, ['tmpName' => $value['tmp_name'],
-                                                'prefix' => $model_name.'.'.$field_name,
-                                                'suffix' => $value['name']]);
-                        $data[$model_name][$field_name] = $structure_name.'.'.$field_name.'.%d.'.$value['name'];
+                        $target_name = $model_name.'.'.$field_name
+                                       .'.%%key_increment%%.'.$value['name'];
+                        $target_name = $this->getKeyIncrement('atim_internal_file', $target_name);
+                        array_push($move_files, ['tmpName' => $value['tmp_name'],
+                                                 'targetName' => $target_name]);
+                        $data[$model_name][$field_name] = $target_name;
                     }
                 }
             }
@@ -120,7 +122,7 @@ class AppModel extends Model {
      * Takes the move_files array returned by filter_move_files and moves the
      * uploaded files to the configured directory with the set file name.
      **/
-    private function move_files($move_files, $last_insert_id) {
+    private function move_files($move_files) {
 		if($move_files) {
 		    //make sure directory exists
 		    $dir = Configure::read('uploadDirectory');
@@ -128,8 +130,8 @@ class AppModel extends Model {
 		        mkdir($dir);
 		    }
     		foreach($move_files as $move_file) {
-    		    $newName = $dir.'/'.$move_file['prefix'].'.'.$last_insert_id.'.'.$move_file['suffix'];
-    		    move_uploaded_file($moveFile['tmpName'], $newName);
+    		    $newName = $dir.'/'.$move_file['targetName'];
+    		    move_uploaded_file($move_file['tmpName'], $newName);
     		}
         }
     }
@@ -169,7 +171,7 @@ class AppModel extends Model {
 		
         $move_files = $this->filter_move_files($data);
 		$result = parent::save($data, $validate, $fieldList);
-        $this->move_files($move_files, $this->getLastInsertID());
+        $this->move_files($move_files);
 
 		return $result;
 	}
