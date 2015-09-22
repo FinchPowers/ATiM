@@ -132,7 +132,11 @@ class AppController extends Controller {
 
         $redirect_invalid_file = function($case_type) use (&$file) {
             CakeLog::error("User tried to download invalid file (".$case_type."): ".$file);
-            AppController::getInstance()->redirect("/Pages/err_file_not_found?p[]=".$file);
+            if ($case_type === 3) {
+                AppController::getInstance()->redirect("/Pages/err_file_not_auth?p[]=".$file);
+            } else {
+                AppController::getInstance()->redirect("/Pages/err_file_not_found?p[]=".$file);
+            }
         };
 
         $index = -1;
