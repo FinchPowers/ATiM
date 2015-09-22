@@ -412,21 +412,15 @@ class AuthComponent extends Component {
 			$url = $controller->referer($default, true);
 
 			{
-                //ATiM start------
-                //ATIM patch - I'm not sure where the bug is "by design", but
-                //controller->referer returns the full prefix past hostname and
-                //later router::url reprepends it to the url. This causes
-                //erroneous redirection on unauthorized routes. This patch fixes
-                //that.
-                $baseUrl = Router::url('/', true);
-                $index = -1;
-                foreach(range(0, 2) as $_) {
-                    //find the 3rd /
-                    $index = strpos($baseUrl, '/', $index + 1);
-                }
-
-                $url = substr($url, strlen(substr($baseUrl, $index)) - 1);
-                //ATiM end------
+                            //ATiM start------
+                            //ATIM patch - I'm not sure where the bug is "by design", but
+                            //controller->referer returns the full prefix past hostname and
+                            //later router::url reprepends it to the url. This causes
+                            //erroneous redirection on unauthorized routes. This patch fixes
+                            //that.
+                            $baseUrl = Router::url('/');
+                            $url = str_replace($baseUrl, '/', $url);
+                            //ATiM end------
 			}
 		} else {
 			$url = $this->unauthorizedRedirect;
