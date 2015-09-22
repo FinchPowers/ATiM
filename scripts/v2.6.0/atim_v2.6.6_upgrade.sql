@@ -159,8 +159,13 @@ INSERT INTO `datamart_browsing_controls` (`id1`, `id2`, `flag_active_1_to_2`, `f
 INSERT INTO `key_increments` (`key_name`, `key_value`)
 VALUES('atim_internal_file', 1);
 
+INSERT INTO `pages` (`id`, `error_flag`, `language_title`, `language_body`) VALUES
+('err_file_not_found', 1, 'file_not_found', 'file_not_found_err_msg');
 
-
+INSERT IGNORE INTO i18n (id,en,fr) VALUES 
+('file_not_found','File not found','Fichier introuvable'),
+('file_not_found_err_msg', "The file you are trying to get was not found (%1$s)",
+                           "Lf fichier que vous tentez d'obtenir est introuvable (%1$s)");
 
 
 

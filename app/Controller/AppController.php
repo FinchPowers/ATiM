@@ -130,11 +130,9 @@ class AppController extends Controller {
     private function handleFileRequest() {
         $file = $this->request->query['file'];
 
-        $die_invalid_file = function($case_type) use (&$file) {
+        $redirect_invalid_file = function($case_type) use (&$file) {
             CakeLog::error("User tried to download invalid file (".$case_type."): ".$file);
-            // TODO: redirect to a static page
-            //AppController::getInstance()->redirect("/Pages/err_confidential");
-            die('Invalid file');
+            AppController::getInstance()->redirect("/Pages/err_file_not_found?p[]=".$file);
         };
 
         $index = -1;
@@ -147,18 +145,18 @@ class AppController extends Controller {
             // NOTE: Cannot use flash for errors because file is still in the
             // url and that would cause an infinite loop
             if (strpos($file, '/') > -1 || strpos($file, '\\') > -1) {
-                $die_invalid_file(1);
+                $redirect_invalid_file(1);
             }
             $full_file = $dir.'/'.$file;
             if (!file_exists($full_file)) {
-                $die_invalid_file(2);
+                $redirect_invalid_file(2);
             }
             $index = strpos($file, '.', $index + 1) + 1;
             $this->response->file($full_file,
                                   array('name' => substr($file, $index)));
             return $this->response;
         }
-        $die_invalid_file(3);
+        $redirect_invalid_file(3);
     }
 	
     /**
