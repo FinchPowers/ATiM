@@ -98,6 +98,9 @@ class AppModel extends Model {
             return $move_files;
         }
         foreach($data as $model_name => $fields){
+            if (!is_array($fields)) {
+                continue;
+            }
             foreach($fields as $field_name => $value) {
                 if(is_array($value)) {
                     $keys = array_keys($value);
