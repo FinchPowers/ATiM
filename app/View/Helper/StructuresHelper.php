@@ -792,6 +792,10 @@ class StructuresHelper extends Helper {
 		}
 		echo("</dl>");
 	}
+
+        private function get_open_file_link($current_value) {
+            return '<a href="?file='.$current_value.'">'.__("open file").'</a>';
+        }
 	
 	/**
 	 * Echoes a structure field
@@ -904,7 +908,7 @@ class StructuresHelper extends Helper {
 				$current_value = str_replace('\n', "\n", $current_value);	
                         }else if($table_row_part['type'] == 'file'){
                             if ($current_value) {
-                                $display = '<a href="?file='.$current_value.'">'.__("open file").'</a>';
+                                $display = $this->get_open_file_link($current_value);
                                 $display .= '<input type="radio" class="fileOption" name="data['.$field_name.'][option]" value="" checked="checked"><span>'._('keep').'</span>';
                                 $display .= '<input type="radio" class="fileOption" name="data['.$field_name.'][option]" value="delete"><span>'._('delete').'</span>';
                                 $display .= '<input type="radio" class="fileOption" name="data['.$field_name.'][option]" value="replace"><span>'._('replace').'</span>';
@@ -963,7 +967,7 @@ class StructuresHelper extends Helper {
 				$current_value = str_replace('&dbs;', '\\', $current_value);
 				$display = html_entity_decode($current_value);
 			}else if($table_row_part['type'] == 'file'){
-                            $display = '<a href="?file='.$current_value.'">'.__("open file").'</a>';
+                            $display = $this->get_open_file_link($current_value);
 			}else{
 				$display = $current_value;
 			}

@@ -169,7 +169,8 @@ INSERT IGNORE INTO i18n (id,en,fr) VALUES
                            "Le fichier que vous tentez d'obtenir est introuvable (%1$s)"),
 ('file_not_auth', 'File unauthorized', 'Fichier non authorisé'),
 ('file_not_auth_msg', 'You are not authorized to open file (%1$s)',
-                      "Vous n'êtes pas authorisé à ouvrir le fichier (%1$s)");
+                      "Vous n'êtes pas authorisé à ouvrir le fichier (%1$s)"),
+('open the file', 'open the file', 'ouvrir le fichier');
 
 
 
