@@ -93,27 +93,49 @@ class AppModel extends Model {
      * directive array to
      **/
     private function filter_move_files(&$data) {
-		$move_files = array();
+        $move_files = array();
         if(!is_array($data)) {
             return $move_files;
         }
+        $prev_data = $this->id ? $this->read() : null;
+        $dir = Configure::read('uploadDirectory');
         foreach($data as $model_name => $fields){
             if (!is_array($fields)) {
                 continue;
             }
-            foreach($fields as $field_name => $value) {
-                if(is_array($value)) {
-                    $keys = array_keys($value);
-                    if($keys == ['name', 'type', 'tmp_name', 'error', 'size']) {
+            foreach ($fields as $field_name => $value) {
+                if (is_array($value)) {
+                    if (isset($value['name'])) {
+                        if (!$value['size']) {
+                            // no file
+                            $data[$model_name][$field_name] = '';
+                            continue;
+                        }
                         if (!file_exists($value['tmp_name'])) {
                             die('Error with temporary file');
                         }
                         $target_name = $model_name.'.'.$field_name
                                        .'.%%key_increment%%.'.$value['name'];
+                        
+                        if ($prev_data[$model_name][$field_name]) {
+                            // delete previous file
+                            unlink($dir.'/'.$prev_data[$model_name][$field_name]);
+                        }
                         $target_name = $this->getKeyIncrement('atim_internal_file', $target_name);
                         array_push($move_files, ['tmpName' => $value['tmp_name'],
                                                  'targetName' => $target_name]);
                         $data[$model_name][$field_name] = $target_name;
+                    }
+                    else if (isset($value['option'])) {
+                        if ($value['option'] == 'delete'
+                            && $prev_data[$model_name][$field_name])
+                        {
+                            $data[$model_name][$field_name] = '';
+                            unlink($dir.'/'.$prev_data[$model_name][$field_name]);
+                        }
+                        else {
+                            unset($data[$model_name][$field_name]);
+                        }
                     }
                 }
             }
@@ -171,10 +193,10 @@ class AppModel extends Model {
 		    //NL Comment See notes on eventum $data[$this->name]['-'] = "foo";
 			$data[$this->name]['-'] = "foo";
 		}
-		
-        $move_files = $this->filter_move_files($data);
+
+                $move_files = $this->filter_move_files($data);
 		$result = parent::save($data, $validate, $fieldList);
-        $this->move_files($move_files);
+                $this->move_files($move_files);
 
 		return $result;
 	}
