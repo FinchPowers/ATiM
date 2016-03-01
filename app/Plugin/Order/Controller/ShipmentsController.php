@@ -12,7 +12,7 @@ class ShipmentsController extends OrderAppController {
 		
 		'InventoryManagement.AliquotMaster');
 		
-	var $paginate = array('Shipment'=>array('limit' => pagination_amount,'order'=>'Shipment.datetime_shipped DESC'));
+	var $paginate = array('Shipment'=>array('order'=>'Shipment.datetime_shipped DESC'));
 
 	function search($search_id = 0){
 		$this->set('atim_menu', $this->Menus->get('/Order/Orders/search'));
@@ -190,6 +190,10 @@ class ShipmentsController extends OrderAppController {
 		
 		if($arr_allow_deletion['allow_deletion']) {
 			if($this->Shipment->atimDelete( $shipment_id )) {
+				$hook_link = $this->hook('postsave_process');
+				if( $hook_link ) { 
+					require($hook_link); 
+				}
 				$this->atimFlash(__('your data has been deleted'), '/Order/Orders/detail/'.$order_id);
 			} else {
 				$this->flash(__('error deleting data - contact administrator'), '/Order/Orders/detail/'.$order_id);
@@ -435,6 +439,12 @@ class ShipmentsController extends OrderAppController {
 				if(!$this->OrderLine->save($order_line, false)) { 
 					$remove_done = false; 
 				}	
+			}
+			
+
+			$hook_link = $this->hook('postsave_process');
+			if( $hook_link ) {
+				require($hook_link);
 			}
 
 			// Redirect

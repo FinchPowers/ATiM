@@ -19,8 +19,8 @@ class SpecimenReviewsController extends InventoryManagementAppController {
 	);
 	
 	var $paginate = array(
-		'SpecimenReviewMaster' => array('limit' => pagination_amount, 'order' => 'SpecimenReviewMaster.review_date ASC'),
-		'AliquotReviewMaster' => array('limit' => pagination_amount, 'order' => 'AliquotReviewMaster.review_code DESC')
+		'SpecimenReviewMaster' => array('order' => 'SpecimenReviewMaster.review_date ASC'),
+		'AliquotReviewMaster' => array('order' => 'AliquotReviewMaster.review_code DESC')
 	);
 	
 	function listAll($collection_id, $sample_master_id){
@@ -550,7 +550,12 @@ class SpecimenReviewsController extends InventoryManagementAppController {
 					
 			// 3- Delete sample review
 			if(!$this->SpecimenReviewMaster->atimDelete($specimen_review_id)) { $this->redirect('/Pages/err_plugin_system_error?method='.__METHOD__.',line='.__LINE__, null, true); }
-				
+
+			$hook_link = $this->hook('postsave_process');
+			if( $hook_link ) {
+				require($hook_link);
+			}
+			
 			$this->atimFlash(__('your data has been deleted'), '/InventoryManagement/SpecimenReviews/listAll/' . $collection_id . '/' . $sample_master_id);
 		} else {
 			$this->flash(__($arr_allow_deletion['msg']), '/InventoryManagement/SpecimenReviews/detail/' . $collection_id . '/' . $sample_master_id . '/' . $specimen_review_id);

@@ -433,6 +433,8 @@ Configure::write('databrowser_and_report_results_display_limit', 1000);
 /**
  * Set the limit of items that could be processed in batch
  */
+Configure::write('ParticipantMessageCreation_processed_participants_limit', 50);		// ParticipantMessage.add()
+
 Configure::write('SampleDerivativeCreation_processed_items_limit', 50);		// SampleMasters.batchDerivative()
 	
 Configure::write('AliquotCreation_processed_items_limit', 50);				// AliquotMasters.add()
@@ -445,6 +447,8 @@ Configure::write('QualityCtrlsCreation_processed_items_limit', 50);			// Quality
 	
 Configure::write('AddAliquotToOrder_processed_items_limit', 50);			// OrderItems.addAliquotsInBatch()
 Configure::write('AddAliquotToShipment_processed_items_limit', 50);			// Shipments.addToShipment()
+
+Configure::write('TmaSlideCreation_processed_items_limit', 50);				// TmaSlides.add()
 
 /**
  * Set the allowed links that exists between an OrderItem and different Order plugin objects:
