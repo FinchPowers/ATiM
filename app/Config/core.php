@@ -390,7 +390,7 @@ Cache::config('browser', array('engine' => 'File', 'path' => CACHE . "browser", 
 Cache::config('default', array('engine' => 'File'));
 
 Configure::write('use_compression', false);
-Configure::write('Session.timeout', $debug ? 3600 : 600);
+Configure::write('Session.timeout', $debug ? 3600 : 3600);
 
 /**
  * Define the complexity of a password format:
@@ -403,17 +403,21 @@ Configure::write('Session.timeout', $debug ? 3600 : 600);
 Configure::write('password_security_level', 2);
 
 /**
- * Maximum number of successive failed login attempts (max_login_attempts_from_IP) before an IP address is disabled.
- * Time in minute (time_mn_IP_disabled) before an IP adress can retest login.
+ * Maximum number of successive failed login attempts (max_login_attempts_from_IP) 
+ * before an IP address is temporary disabled what ever the username used. 
+ * See 'time_mn_IP_disabled' core varaible to set the time before an IP address is reactivated.
+ * Set value to null if you don't want the system disables an IP address based on login attempts.
  */
 Configure::write('max_login_attempts_from_IP', 5);
 /**
- * Time in minute (time_mn_IP_disabled) before an IP adress is reactivated.
+ * Time in minute (time_mn_IP_disabled) before an IP address is reactivated.
  */
 Configure::write('time_mn_IP_disabled', 20);
 
 /**
- * Maximum number of login attempts with a same username (max_user_login_attempts) before a username is disabled.
+ * Maximum number of login attempts with a same username (max_user_login_attempts) before a username is disabled. 
+ * The status of a disabled username can only be changed by a user with administartor rights.
+ * Set value to null if you don't want the system disables a username based on login attempts.
  */
 Configure::write('max_user_login_attempts', 5);
 
@@ -445,10 +449,12 @@ Configure::write('AliquotBarcodePrint_processed_items_limit', 50);			// AliquotM
 	
 Configure::write('QualityCtrlsCreation_processed_items_limit', 50);			// QualityCtrls.add()
 	
-Configure::write('AddAliquotToOrder_processed_items_limit', 50);			// OrderItems.addAliquotsInBatch()
-Configure::write('AddAliquotToShipment_processed_items_limit', 50);			// Shipments.addToShipment()
+Configure::write('AddToOrder_processed_items_limit', 50);					// OrderItems.add() & OrderItems.addOrderItemsInBatch()
+Configure::write('AddToShipment_processed_items_limit', 50);				// Shipments.addToShipment()
+Configure::write('defineOrderItemsReturned_processed_items_limit', 50);		// OrderItems.defineOrderItemsReturned()
+Configure::write('edit_processed_items_limit', 50);							// OrderItems.editInBatch()
 
-Configure::write('TmaSlideCreation_processed_items_limit', 50);				// TmaSlides.add()
+Configure::write('TmaSlideCreation_processed_items_limit', 50);				// TmaSlides.add(), TmaSlides.editInBatch(), TmaSlideUses.add(), TmaSlideUses.editInBatch(), 
 
 /**
  * Set the allowed links that exists between an OrderItem and different Order plugin objects:
@@ -459,5 +465,13 @@ Configure::write('TmaSlideCreation_processed_items_limit', 50);				// TmaSlides.
 Configure::write('order_item_to_order_objetcs_link_setting', 1);		// SampleMasters.batchDerivative()
 
 Configure::write('uploadDirectory', './atimUploadDirectory');
+
+/**
+ * Set the type(s) of item that could be added to order:
+ * 		1 => both tma slide and aliquot
+ * 		2 => aliquot only
+ * 		3 => tma slide only
+ */
+Configure::write('order_item_type_config', 1);
 
 unset($debug);
