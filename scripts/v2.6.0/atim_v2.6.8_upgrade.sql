@@ -1,13 +1,14 @@
 -- -----------------------------------------------------------------------------------------------------------------------------------
 -- ATiM v2.6.8 Upgrade Script
 --
--- See ATiM wiki fpr more information: 
+-- See ATiM wiki for more information: 
 --    http://www.ctrnet.ca/mediawiki/index.php/Main_Page
 -- -----------------------------------------------------------------------------------------------------------------------------------
 --
 -- MIGRATION DETAIL:
 -- 
 --   ### 1 # Added Investigator and Funding sub-models to study tool
+--   ---------------------------------------------------------------
 --
 --      To be able to create one to many investigators or fundings of a study.
 --
@@ -16,9 +17,9 @@
 --      In /app/Plugin/StudyView/StudySummaries/detail.ctp, set the variables $display_study_fundings and/or $display_study_investigators
 --      to 'false' to hide the section.
 --
---
 --		
 --   ### 2 # Replaced the study drop down list to both an autocomplete field and a text field
+--   ----------------------------------------------------------------------------------------
 --
 --      Replaced all 'study_summary_id' field with 'select' type and 'domain_name' equals to 'study_list' by the 2 following fields
 --			- Study.FunctionManagement.autocomplete_{.*}_study_summary_id for any data creation and update
@@ -26,7 +27,7 @@
 --		
 --		A field study_summary_title has been created for both ViewAliquot and ViewAliquotUse.
 --		
---      The defintion of study linked to a created/updated data is now done through an 'autocomplete' field.
+--      The definition of study linked to a created/updated data is now done through an 'autocomplete' field.
 --		
 --      The search of a study linked to a data is done by the use of the text field (list could be complex to use for any long list of values).
 --		
@@ -48,8 +49,8 @@
 --      Update $table_querie variables of the ViewAliquotCustom and ViewAliquotUseCustom models (if exists).
 --
 --		
---
 --   ### 2 # Added Study Model to the databrowser
+--   --------------------------------------------
 --
 --      TODO:
 --
@@ -62,11 +63,12 @@
 --
 --
 --   ### 3 # Added ICD-0-3-Topo Categories (tissue site/category)
+--   ------------------------------------------------------------
 --
---		The ICD-0-3-Topo categories have been defined based on an internet reasearch (no source file).
+--		The ICD-0-3-Topo categories have been defined based on an internet research (no source file).
 --		
 --		Created field 'diagnosis_masters.icd_0_3_topography_category' to record a ICD-0-3-Topo 3 digits codes (C07, etc) 
---		and to let user searches on tissue site/category (more generic than tissue descritpion - ex: colon, etc).
+--		and to let user searches on tissue site/category (more generic than tissue description - ex: colon, etc).
 --		
 --		A search field on ICD-0-3-Topo categories has been created for each form displaying a field linked to the ICD-0-3-Topo tool.
 --		
@@ -81,8 +83,8 @@
 --		field (when the diagnosis_masters.topography field contains ICD-0-3-Topo codes).
 --
 --		
---
 --   ### 4 # Changed field 'Disease Code (ICD-10_WHO code)' of secondary diagnosis form from ICD-10_WHO tool to a limited drop down list
+--   -----------------------------------------------------------------------------------------------------------------------------------
 --
 -- 		New field is linked to the StructureValueDomain 'secondary_diagnosis_icd10_code_who' that gathers only ICD-10 codes of secondaries.
 --
@@ -91,8 +93,8 @@
 --		Check any of your secondary diagnosis forms.
 --		
 --
---
 --   ### 5 # Changed DiagnosisControl.category values
+--   ------------------------------------------------
 -- 	
 --		Changed:	
 --         - 'secondary' to 'secondary - distant'
@@ -104,8 +106,8 @@
 --		Update custom code if required.
 --		
 --
---
 --   ### 6 # Replaced the drug drop down list to both an autocomplete field and a text field plus moved drug_id field to Master model
+--   --------------------------------------------------------------------------------------------------------------------------------
 --
 --		Replaced all 'drug_id' field with 'select' type and 'domain_name' equals to 'drug_list' by the 3 following field
 --			- ClinicalAnnotation.FunctionManagement.autocomplete_treatment_drug_id for any data creation and update
@@ -139,8 +141,8 @@
 --      ALTER TABLE {tablename}_revs DROP COLUMN drug_id;
 --		
 --
---
 --   ### 7 # TMA slide new features
+--   ------------------------------
 --
 --      Created an immunochemistry autocomplete field.
 --		
@@ -160,8 +162,8 @@
 --		Review the /app/webroot/img/dataBrowser/datamart_structures_relationships.vsd document.
 --		
 --
---
 --   ### 8 # Order tool upgrade
+--   --------------------------
 --
 --      The all Order tool has been redesigned to be able to:
 --			- Add tma slide to an order (both aliquot and tma slide will be considered as OrderItem).
@@ -184,8 +186,8 @@
 --      Update $table_querie variable of the ViewAliquotUseCustom model (if exists).
 --		
 --
---
 --   ### 9 # New Sample and aliquot controls
+--   ---------------------------------------
 --
 --      Created:
 --			- Buffy Coat
@@ -198,10 +200,10 @@
 --		Activate these sample types if required.
 --		
 --
---
 --   ### 10 # Removed AliquotMaster.use_counter field
+--   ------------------------------------------------
 --
--- 		Function AliquotMaster.updateAliquotUseAndVolume() is now deprecated and repalced by AliquotMaster.updateAliquotVolume().
+-- 		Function AliquotMaster.updateAliquotUseAndVolume() is now deprecated and replaced by AliquotMaster.updateAliquotVolume().
 --
 --		TODO:
 --
@@ -210,8 +212,8 @@
 --		Check custom function AliquotMasterCustom.updateAliquotUseAndVolume() exists and update this one if required.
 --		
 --
---
 --   ### 11 # datamart_structures 'storage' replaced by either datamart_structures 'storage (non tma block)' and datamart_structures 'tma blocks (storages sub-set)'
+--   ---------------------------------------------------------------------------------------------------------------------------------------------------------------
 --
 --		TODO:
 --		
@@ -219,9 +221,9 @@
 --			SELECT * FROM datamart_structure_functions WHERE datamart_structure_id = (SELECT id FROM datamart_structures WHERE model = 'NonTmaBlockStorage') AND label != 'list all children storages';
 --			SELECT * FROM datamart_reports WHERE associated_datamart_structure_id = (SELECT id FROM datamart_structures WHERE model = 'NonTmaBlockStorage') AND name != 'list all children storages';
 --
---		
 --
 --   ### 12 # Added new controls on storage_controls: coord_x_size and coord_y_size should be bigger than 1 if set
+--   -------------------------------------------------------------------------------------------------------------
 --
 --		TODO:
 --		
@@ -229,16 +231,16 @@
 --			SELECT storage_type, coord_x_size, coord_y_size FROM storage_controls WHERE (coord_x_size IS NOT NULL AND coord_x_size < 2) OR (coord_y_size IS NOT NULL AND coord_y_size < 2);
 --
 --		
---
 --   ### 13 # Replaced AliquotMaster.getDefaultStorageDate() by AliquotMaster.getDefaultStorageDateAndAccuracy()
+--   -----------------------------------------------------------------------------------------------------------
 --
 --		TODO:
 --		
 --		Check any custom code using AliquotMaster.getDefaultStorageDate().
 --
 --		
---
---  ### 14 # Changed displayed pages workflow after treatment creation.
+--   ### 14 # Changed displayed pages workflow after treatment creation.
+--   ------------------------------------------------------------------
 --
 --		Based on the created treatment type and the selected protocol (when option exists), the next page displayed after a treatment creation could be:
 --			- The treatment detail form.
@@ -250,8 +252,8 @@
 --		Change workflow by hook if required.
 --
 --
---		
---  ### 15 # Changed way we format the displayed results of a search on a Coding System List (WHO-10, etc).
+--   ### 15 # Changed way we format the displayed results of a search on a Coding System List (WHO-10, etc).
+--   ------------------------------------------------------------------------------------------------------
 --
 --		Removed the CodingIcd.%_title, CodingIcd.%_sub_title and CodingIcd.%_descriptions fields.
 --
@@ -260,8 +262,8 @@
 --		Override the CodingIcdAppModel.globalSearch and CodingIcdAppModel.getDescription functions.
 --
 --		
---
 --  ### 16 # Added CAP Report "Protocol for the Examination of Specimens From Patients With Primary Carcinoma of the Colon and Rectum" (version 2016 - v3.4.0.0) 
+--   -----------------------------------------------------------------------------------------------------------------------------------------------------------
 --
 --		TODO:
 --		
@@ -270,16 +272,16 @@
 --			- UPDATE event_controls SET flag_active = '1' WHERE event_type = 'cap report 2016 - colon/rectum - excis. resect.';
 --
 --
---		
 --   ### 17 # Added aliquot in stock detail to ViewAliquot
+--   -----------------------------------------------------
 --
 --      TODO:
 --
 --      Update $table_querie variable of the ViewAliquotCustom model (if exists).
 --
 --
---		
---   ### 18 # Added field structure_fields.sortable 
+--   ### 18 # Added field structure_fields.sortable
+--   ---------------------------------------------- 
 --
 --      In index view, the 'sortable' value will define if the user can sort records based on field column data or not. A field
 --      displaying data generated by the system can not be used as sort criteria.
@@ -289,6 +291,27 @@
 --      Review custom fields and set value to 0 if fields can not be used to sort data
 --
 --
+--   ### 19 # Added new password management features
+--   -----------------------------------------------
+--   
+--      Some features have been developed to:
+--			- Ban use of a limited number of previous passwords for any user who has to change his password.
+--			- Allow users to reset a forgotten password with no support of the administrator.
+--
+--      TODO:
+--
+--		Set the new core variables 'reset_forgotten_password_feature' and 'different_passwords_number_before_re_use'.
+--		Change the list of questions a user can select to record personal answers that will be used by the 'Reset forgotten password feature'. See the 'Password Reset Questions' list 
+--		of the 'Dropdown List Configuration' tool.
+--
+--
+--   ### 20 # Changed trunk code to support sql_mode ONLY_FULL_GROUP_BY
+--   ------------------------------------------------------------------
+--   
+--       TODO:
+--
+--		Review any custom code if your installation set up includes the sql_mode ONLY_FULL_GROUP_BY.
+-- 
 -- -----------------------------------------------------------------------------------------------------------------------------------
 
 -- -----------------------------------------------------------------------------------------------------------------------------------
@@ -3085,7 +3108,7 @@ FROM structure_formats WHERE structure_id = (SELECT id FROM structures WHERE ali
 DELETE FROM structure_formats WHERE structure_id = (SELECT id FROM structures WHERE alias='users') AND structure_field_id IN (SELECT id FROM structure_fields WHERE `model`='User' AND `tablename`='users' AND `field` IN ('flag_active', 'force_password_reset'));
 
 -- -----------------------------------------------------------------------------------------------------------------------------------
--- 
+-- Reset Password
 -- -----------------------------------------------------------------------------------------------------------------------------------
 
 ALTER TABLE users
@@ -3197,51 +3220,117 @@ INSERT INTO structure_formats(`structure_id`, `structure_field_id`, `display_col
 ((SELECT id FROM structures WHERE alias='username'), (SELECT id FROM structure_fields WHERE `model`='User' AND `tablename`='users' AND `field`='username' AND `type`='input' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='size=20' AND `default`='' AND `language_help`='login_help' AND `language_label`='username' AND `language_tag`=''), '1', '0', '', '0', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');
 
 -- -----------------------------------------------------------------------------------------------------------------------------------
+-- Issue #3360: User 'Account Status' field value does not match list value in edit mode
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+DELETE FROM structure_formats WHERE structure_id=(SELECT id FROM structures WHERE alias='preferences_lock');
+DELETE FROM structures WHERE alias='preferences_lock';
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Issue #3365 : Annoucements : Unable to create annoucements for a bank or a user
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+UPDATE menus SET use_link = '/Administrate/Announcements/index/user/%%Group.id%%/%%User.id%%/' WHERE use_link = '/Administrate/Announcements/index/%%Group.id%%/%%User.id%%/';
+UPDATE menus SET use_link = '/Administrate/Announcements/index/bank/%%Bank.id%%/' WHERE use_link = '/Administrate/Announcements/index/%%Bank.id%%/';
+UPDATE menus SET use_summary = 'Administrate.User::summary' WHERE use_link = '/Administrate/Announcements/index/user/%%Group.id%%/%%User.id%%/';
+UPDATE menus SET use_summary = 'Administrate.Bank::summary' WHERE use_link = '/Administrate/Announcements/index/bank/%%Bank.id%%/';
+ALTER TABLE `announcements` 
+  MODIFY `date` date DEFAULT NULL,
+  MODIFY `date_start` date DEFAULT NULL,
+  MODIFY `date_end` date DEFAULT NULL;
+DROP TABLE IF EXISTS `announcements_revs`;
+CREATE TABLE `announcements_revs` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `group_id` int(11) DEFAULT NULL,
+  `bank_id` int(11) DEFAULT '0',
+  `date` date DEFAULT NULL,
+  `date_accuracy` char(1) NOT NULL DEFAULT '',
+  `title` varchar(255) NOT NULL DEFAULT '',
+  `body` text NOT NULL,
+  `date_start` date DEFAULT NULL,
+  `date_start_accuracy` char(1) NOT NULL DEFAULT '',
+  `date_end` date DEFAULT NULL,
+  `date_end_accuracy` char(1) NOT NULL DEFAULT '',
+  `modified_by` int(10) unsigned NOT NULL,
+  `version_id` int(11) NOT NULL AUTO_INCREMENT,
+  `version_created` datetime NOT NULL,
+  PRIMARY KEY (`version_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+UPDATE structure_fields SET tablename = 'announcements' WHERE tablename = 'annoucements';
+UPDATE structure_formats SET `flag_index`='1' WHERE structure_id=(SELECT id FROM structures WHERE alias='announcements') AND structure_field_id=(SELECT id FROM structure_fields WHERE `model`='Announcement' AND `tablename`='announcements' AND `field`='body' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0');
+UPDATE structure_formats SET `flag_index`='1', `flag_detail`='1' WHERE structure_id=(SELECT id FROM structures WHERE alias='announcements') AND structure_field_id=(SELECT id FROM structure_fields WHERE `model`='Announcement' AND `tablename`='announcements' AND `field`='date_start' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0');
+UPDATE structure_formats SET `flag_index`='1', `flag_detail`='1' WHERE structure_id=(SELECT id FROM structures WHERE alias='announcements') AND structure_field_id=(SELECT id FROM structure_fields WHERE `model`='Announcement' AND `tablename`='announcements' AND `field`='date_end' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0');
+UPDATE structure_formats SET `display_order`='1' WHERE structure_id=(SELECT id FROM structures WHERE alias='announcements') AND structure_field_id=(SELECT id FROM structure_fields WHERE `model`='Announcement' AND `tablename`='announcements' AND `field`='title' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0');
+UPDATE structure_formats SET `display_order`='5' WHERE structure_id=(SELECT id FROM structures WHERE alias='announcements') AND structure_field_id=(SELECT id FROM structure_fields WHERE `model`='Announcement' AND `tablename`='announcements' AND `field`='body' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0');
+UPDATE structure_formats SET `display_order`='2' WHERE structure_id=(SELECT id FROM structures WHERE alias='announcements') AND structure_field_id=(SELECT id FROM structure_fields WHERE `model`='Announcement' AND `tablename`='announcements' AND `field`='date' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0');
+UPDATE structure_formats SET `display_order`='3' WHERE structure_id=(SELECT id FROM structures WHERE alias='announcements') AND structure_field_id=(SELECT id FROM structure_fields WHERE `model`='Announcement' AND `tablename`='announcements' AND `field`='date_start' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0');
+UPDATE structure_formats SET `display_order`='4' WHERE structure_id=(SELECT id FROM structures WHERE alias='announcements') AND structure_field_id=(SELECT id FROM structure_fields WHERE `model`='Announcement' AND `tablename`='announcements' AND `field`='date_end' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0');
+UPDATE menus SET flag_active = '1' WHERE use_link = '/Administrate/Announcements/index/user/%%Group.id%%/%%User.id%%/';
+INSERT INTO i18n (id,en,fr) VALUES ('you have %s due annoucements', 'You have %s annoucements.', 'Vous avez %s annonces');
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Changed the labels of the list of the 'Check Conflict' field used when setting the data of a new storage type 
+-- (Tool : Manage storage types)
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+INSERT IGNORE INTO structure_permissible_values (value, language_alias) VALUES("0", "storage_check_conflicts_none"),("1", "storage_check_conflicts_warning"),("2", "storage_check_conflicts_error");
+DELETE FROM structure_value_domains_permissible_values WHERE structure_value_domain_id = (SELECT id FROM structure_value_domains WHERE domain_name="storage_check_conflicts");
+INSERT IGNORE INTO structure_value_domains_permissible_values 
+(structure_value_domain_id, structure_permissible_value_id, display_order, flag_active) 
+VALUES 
+((SELECT id FROM structure_value_domains WHERE domain_name="storage_check_conflicts"), (SELECT id FROM structure_permissible_values WHERE value="0" AND language_alias="storage_check_conflicts_none"), "1", "1"),
+((SELECT id FROM structure_value_domains WHERE domain_name="storage_check_conflicts"), (SELECT id FROM structure_permissible_values WHERE value="1" AND language_alias="storage_check_conflicts_warning"), "2", "1"),
+((SELECT id FROM structure_value_domains WHERE domain_name="storage_check_conflicts"), (SELECT id FROM structure_permissible_values WHERE value="2" AND language_alias="storage_check_conflicts_error"), "3", "1");
+INSERT IGNORE INTO i18n (id,en,fr)
+VALUES
+('storage_check_conflicts_none', 'No control for items stored in the same position', 'Aucun contrôle sur les items entreposés à la même position'),
+('storage_check_conflicts_warning', 'Items stored in the same position generate warning', 'Items entreposés à la même position génèrent un avertissement'),
+('storage_check_conflicts_error', 'Items stored in the same position generate error', 'Items entreposés à la même position génèrent une erreur');
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Added mail code to study investigator address
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+ALTER TABLE study_investigators
+  ADD COLUMN mail_code VARCHAR(10) DEFAULT NULL;
+ALTER TABLE study_investigators_revs
+  ADD COLUMN mail_code VARCHAR(10) DEFAULT NULL; 
+INSERT INTO structure_fields(`plugin`, `model`, `tablename`, `field`, `type`, `structure_value_domain`, `flag_confidential`, `setting`, `default`, `language_help`, `language_label`, `language_tag`) VALUES
+('Study', 'StudyInvestigator', 'study_investigators', 'mail_code', 'input',  NULL , '0', 'size=7', '', '', 'mail_code', '');
+INSERT INTO structure_formats(`structure_id`, `structure_field_id`, `display_column`, `display_order`, `language_heading`, `margin`, `flag_override_label`, `language_label`, `flag_override_tag`, `language_tag`, `flag_override_help`, `language_help`, `flag_override_type`, `type`, `flag_override_setting`, `setting`, `flag_override_default`, `default`, `flag_add`, `flag_add_readonly`, `flag_edit`, `flag_edit_readonly`, `flag_search`, `flag_search_readonly`, `flag_addgrid`, `flag_addgrid_readonly`, `flag_editgrid`, `flag_editgrid_readonly`, `flag_batchedit`, `flag_batchedit_readonly`, `flag_index`, `flag_detail`, `flag_summary`, `flag_float`) VALUES 
+((SELECT id FROM structures WHERE alias='studyinvestigators'), (SELECT id FROM structure_fields WHERE `model`='StudyInvestigator' AND `tablename`='study_investigators' AND `field`='mail_code' AND `type`='input' AND `structure_value_domain`  IS NULL  AND `flag_confidential`='0' AND `setting`='size=7' AND `default`='' AND `language_help`='' AND `language_label`='mail_code' AND `language_tag`=''), '2', '3', '', '0', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '1', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '1', '0', '0');
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Issue#3367: The Order line type 'TMA Slide' is missing in the order items list
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+INSERT INTO structure_formats(`structure_id`, `structure_field_id`, `display_column`, `display_order`, `language_heading`, `margin`, `flag_override_label`, `language_label`, `flag_override_tag`, `language_tag`, `flag_override_help`, `language_help`, `flag_override_type`, `type`, `flag_override_setting`, `setting`, `flag_override_default`, `default`, `flag_add`, `flag_add_readonly`, `flag_edit`, `flag_edit_readonly`, `flag_search`, `flag_search_readonly`, `flag_addgrid`, `flag_addgrid_readonly`, `flag_editgrid`, `flag_editgrid_readonly`, `flag_batchedit`, `flag_batchedit_readonly`, `flag_index`, `flag_detail`, `flag_summary`, `flag_float`) VALUES 
+((SELECT id FROM structures WHERE alias='orderitems_and_lines'), (SELECT id FROM structure_fields WHERE `model`='FunctionManagement' AND `tablename`='' AND `field`='product_type' AND `type`='select' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='order_line_product_types')  AND `flag_confidential`='0' AND `setting`='' AND `default`='' AND `language_help`='' AND `language_label`='product type' AND `language_tag`=''), '0', '36', 'line', '0', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0');
+UPDATE structure_formats SET `flag_index`='0' WHERE structure_id=(SELECT id FROM structures WHERE alias='orderitems_and_lines') AND structure_field_id=(SELECT id FROM structure_fields WHERE `model`='OrderLine' AND `tablename`='order_lines' AND `field`='sample_control_id' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='sample_type_from_id') AND `flag_confidential`='0');
+UPDATE structure_formats SET `flag_index`='0' WHERE structure_id=(SELECT id FROM structures WHERE alias='orderitems_and_lines') AND structure_field_id=(SELECT id FROM structure_fields WHERE `model`='OrderLine' AND `tablename`='order_lines' AND `field`='aliquot_control_id' AND `structure_value_domain` =(SELECT id FROM structure_value_domains WHERE domain_name='aliquot_type_from_id') AND `flag_confidential`='0');
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- Add missing category to custom drop down list
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+INSERT IGNORE INTO structure_permissible_values (value, language_alias) VALUES("administration", "administration");
+INSERT IGNORE INTO structure_value_domains_permissible_values (structure_value_domain_id, structure_permissible_value_id, display_order, flag_active) VALUES ((SELECT id FROM structure_value_domains WHERE domain_name="permissible_values_custom_categories"), (SELECT id FROM structure_permissible_values WHERE value="administration" AND language_alias="administration"), "", "1");
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
+-- 'Missing translations
+-- -----------------------------------------------------------------------------------------------------------------------------------
+
+INSERT IGNORE INTO i18n (id,en,fr)
+VALUES 
+('news', 'News', 'Actualités'),
+('minute', 'Minute', 'Minute');
+
+-- -----------------------------------------------------------------------------------------------------------------------------------
 -- -----------------------------------------------------------------------------------------------------------------------------------
 
 UPDATE versions SET permissions_regenerated = 0;
 INSERT INTO `versions` (version_number, date_installed, trunk_build_number, branch_build_number) 
 VALUES
-('2.6.8', NOW(),'6564','n/a');
-
--- -----------------------------------------------------------------------------------------------------------------------------------
--- -----------------------------------------------------------------------------------------------------------------------------------
-
-Lines to remove and to add to ATiM Wiki after v2.6.8 tag.
-
-- Added Investigator and Funding to study tool.
-- Replaced the study drop down list to an autocomplete field to help user data entry.
-- Added Study and OrderLine Models to the databrowser.
-- Added ICD-0-3-Topo Categories (tissue site/category).
-- Replaced the drug drop down list to an autocomplete field.
-- Added object to track any TMA slide scoring and analysis.
-- Changed order tool to allow user to add a TMA slide to an order.
-- Added feature to be able to flag a shipped item as returned.
-- Created Buffy Coat, Nail, Stool and Vaginal swab sample types.
-- Changed feature to let user to link more than one aliquot type to a path-review.
-- Added CAP Report "Protocol for the Examination of Specimens From Patients With Primary Carcinoma of the Colon and Rectum" (version 2016 - v3.4.0.0)  ¸
-- Changed structures for password update (both for update in customize and administrator plugin)
-- Add flag to force user to reset the password and keep user on the reset form until the password is changed.
-- Created process to reset a forgotten password by security questions.
-- Add core option to ask user to change a password with a new one different than the 2 or 3 old ones.
-- Changed field 'Disease Code (ICD-10_WHO code)' of secondary diagnosis form from ICD-10_WHO tool to a limited drop down list
-- Changed DiagnosisControl.category values to
-         - 'secondary' to 'secondary - distant'
-         - 'progression' to 'progression - locoregional'
-         - 'recurrence' to 'recurrence - locoregional'      
-- Created a TMA slide immunochemistry autocomplete field.
-- Removed AliquotMaster.use_counter field
-- datamart_structures 'storage' replaced by either datamart_structures 'storage (non tma block)' and datamart_structures 'tma blocks (storages sub-set)'
-- Added new controls on storage_controls: coord_x_size and coord_y_size should be bigger than 1 if set
-- Replaced AliquotMaster.getDefaultStorageDate() by AliquotMaster.getDefaultStorageDateAndAccuracy()
-- Changed displayed pages workflow after treatment creation.	
-- Changed way we format the displayed results of a search on a Coding System List (WHO-10, etc).
-- Added CAP Report "Protocol for the Examination of Specimens From Patients With Primary Carcinoma of the Colon and Rectum" (version 2016 - v3.4.0.0) 	
-- Added aliquot in stock detail to ViewAliquot
-- Added field structure_fields.sortable to disable to sort option on 'generated' fields
- 
- 
- 
- 
- 
+('2.6.8', NOW(),'6645','n/a');
  

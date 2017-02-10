@@ -458,6 +458,9 @@ Configure::write('different_passwords_number_before_re_use', 2);
 /**
  * Set the limit of records that could either be displayed in the databrowser results 
  * form or into a report.
+ *
+ * WARNING: This should be set to a value lower than PHP max_input_vars. See
+ * eventum #3333 for details.
  */
 Configure::write('databrowser_and_report_results_display_limit', 1000);
 
